@@ -1,0 +1,269 @@
+affich
+
+//*****************************                
+//*        PROCEDURE                           
+//*****************************                
+//AFFICH   PROC                                
+//E02      EXEC PGM=IEBGENER                   
+//SYSPRINT DD SYSOUT=*                         
+//SYSUT1   DD DSN=&FILE,DISP=SHR               
+//SYSUT2   DD SYSOUT=*                         
+//SYSIN    DD *                                
+/*                                             
+//         PEND                                
+
+***************************** Top of Data ******************************
+affile
+//FORA05A JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//BIBLO   JCLLIB ORDER=FORA05.LIB.JCL                                   
+//        SET FILE=FORA05.TEST2                                         
+//STEP1   EXEC AFFICH                                                   
+//        SET FILE=FORA05.TEST4                                         
+//STEP2   EXEC AFFICH                                                   
+
+***************************** Top of Data ******************************
+
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),       
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                  
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                            
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P3                                  
+//LKED.SYSIN DD  *                                                   
+    ENTRY    A05P3                                                   
+    NAME     A05P3(R)                                                
+//*                                                                  
+//STEP1  EXEC PGM=A05P3                                              
+//DDCLIENT DD DSN=FORA05.CLIENT.SEQ,DISP=SHR                         
+//SYSOUT DD SYSOUT=*                                                 
+//                                                                   
+
+
+***************************** Top of Data ******************************
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                               
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P8A                                    
+//LKED.SYSIN DD  *                                                      
+    ENTRY    A05P8A                                                     
+    NAME     A05P8A(R)                                                  
+//*                                                                     
+//**********************************                                    
+//STEP0A  EXEC PGM=IEFBR14                                              
+//TESTDEL DD   DSN=FORA05.FMVTS2,DISP=(MOD,DELETE,DELETE),              
+//        LIKE=FORA05.FMVT                                              
+//STEP0B  EXEC PGM=IEFBR14                                              
+//TESTNEW DD   DSN=FORA05.FMVTS2,DISP=(NEW,CATLG,DELETE),               
+//        LIKE=FORA05.FMVT                                              
+//************************************                                  
+//STEP1  EXEC PGM=A05P8A                                                
+//DDINPUT DD DSN=FORA05.FMVT,DISP=SHR                                   
+//DDOUTPUT DD DSN=FORA05.FMVTS2,DISP=SHR                                
+//SYSOUT DD SYSOUT=*                                                    
+//                           
+
+
+***************************** Top of Data ******************************
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                               
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P3                                     
+//LKED.SYSIN DD  *                                                      
+    ENTRY    A05P3                                                      
+    NAME     A05P3(R)                                                   
+//*                                                                     
+//STEP1  EXEC PGM=A05P3                                                 
+//DDCLIENT DD DSN=FORA05.CLIENT.SEQ,DISP=SHR                            
+//*DDCLIENT DD DUMMY                                                    
+//SYSOUT DD SYSOUT=*                                                    
+//                                                                      
+
+
+***************************** Top of Data ******************************
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                               
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P4                                     
+//LKED.SYSIN DD  *                                                      
+    ENTRY    A05P4                                                      
+    NAME     A05P4(R)                                                   
+//*                                                                     
+//STEP1  EXEC PGM=A05P4                                                 
+//DDCLIENT DD DSN=FORA05.CLIENT.SEQ,DISP=SHR                            
+//SYSOUT DD SYSOUT=*                                                    
+//STEP2  EXEC PGM=A05P4                                                 
+//DDCLIENT DD DUMMY                                                     
+//SYSOUT DD SYSOUT=*                                                    
+//                       
+
+
+***************************** Top of Data ******************************
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                               
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P6                                     
+//LKED.SYSIN DD  *                                                      
+    ENTRY    A05P6                                                      
+    NAME     A05P6(R)                                                   
+//*                                                                     
+//STEP1  EXEC PGM=A05P6                                                 
+//*DDCLIENT DD DSN=FORA05.CLIENT.SEQ,DISP=SHR                           
+//SYSOUT DD SYSOUT=*                                                    
+//SYSIN DD *                                                            
+ABC                                                                     
+BBC                                                                     
+FIN                                                                     
+AFE                                                                     
+DEF                                                                     
+EAH                                                                     
+FIN                                                                     
+//                                                                                                                                                              
+
+***************************** Top of Data ******************************
+//FORA05C JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID                     
+//JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR                               
+//COBBTCH  EXEC ACOBBTCH,PGMB=A05P7                                     
+//LKED.SYSIN DD  *                                                      
+    ENTRY    A05P7                                                      
+    NAME     A05P7(R)                                                   
+//*                                                                     
+//STEP1  EXEC PGM=A05P7                                                 
+//DDCLIENT DD DSN=FORA05.CLIENT.SEQ,DISP=SHR                            
+//DDOUTPUT DD DSN=FORA05.CLIENT.NEW,DISP=SHR                            
+//SYSOUT DD SYSOUT=*                                                    
+//                
+
+idcams
+***************************** Top of Data ******************************
+//FORA05A JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*           
+//*************************************                                 
+//*    DELETE/DEFINE                                                    
+//*************************************                                 
+//STEP1     EXEC PGM=IDCAMS                                             
+//SYSPRINT  DD   SYSOUT=*                                               
+//SYSIN     DD *                                                        
+ DELETE FORA05.CLIENT.KSDS                                              
+ IF LASTCC <= 8 THEN SET MAXCC = 0                                      
+ DEFINE CLUSTER (NAME(FORA05.CLIENT.KSDS) -                             
+         TRACKS(1 1) -                                                  
+         KEYS(2 0) -                                                    
+         RECORDSIZE(80 80) -                                            
+         SHAREOPTIONS(2 3) -                                            
+         INDEXED) -                                                     
+         DATA (NAME(FORA05.CLIENT.KSDS.DATA)) -                         
+         INDEX (NAME(FORA05.CLIENT.KSDS.INDEX))                         
+/*                                                                      
+//*************************************                                 
+//*    COPY SEQ TO KSDS                                                 
+//*************************************                                 
+//STEP2     EXEC PGM=IDCAMS                                             
+//SYSPRINT  DD   SYSOUT=*                                               
+//SYSIN     DD *                                                        
+ REPRO INDATASET(FORA05.CLIENT.SEQ) -                                   
+       OUTDATASET(FORA05.CLIENT.KSDS)                                   
+/*                                                                      
+//STEP3     EXEC PGM=IDCAMS                                             
+//SYSPRINT  DD   SYSOUT=*                                               
+//FIC1      DD   DSN=FORA05.CLIENT.SEQ2,DISP=SHR                        
+//FIC2      DD   DSN=FORA05.CLIENT.KSDS,DISP=SHR                        
+//SYSIN     DD *                                                        
+ REPRO INFILE(FIC1) -                                                   
+       OUTFILE(FIC2)                                                    
+//STEP4     EXEC PGM=IDCAMS                                             
+//SYSPRINT  DD   SYSOUT=*                                               
+//FIC2      DD   DSN=FORA05.CLIENT.KSDS,DISP=SHR                        
+//SYSIN     DD *                                                        
+ PRINT INFILE(FIC2) CHAR -                                              
+ FROMKEY('02') TOKEY('05')                                              
+//   
+
+
+iebgener
+***************************** Top of Data ******************************
+//FORA05A JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*           
+//**********************************                                    
+//*          DELETE                *                                    
+//**********************************                                    
+//STEP1   EXEC PGM=IEFBR14                                              
+//TESTDEL DD   DSN=FORA05.TEST4,DISP=(MOD,DELETE,DELETE),               
+//        DSORG=PS,RECFM=FB,LRECL=50,                                   
+//        SPACE=(CYL,1)                                                 
+//**********************************                                    
+//*          COPY                  *                                    
+//**********************************                                    
+//E01      EXEC PGM=IEBGENER                                            
+//SYSPRINT DD SYSOUT=*                                                  
+//SYSUT1   DD DSN=FORA05.TEST2,DISP=SHR                                 
+//SYSUT2   DD DSN=FORA05.TEST4,DISP=(,CATLG,DELETE),                    
+//       DCB=FORA05.TEST2,SPACE=(CYL,1)                                 
+//SYSIN    DD DATA                                                      
+/*                                                                      
+//**********************************                                    
+//*          DISPLAY               *                                    
+//**********************************                                    
+//E02      EXEC PGM=IEBGENER                                            
+//SYSPRINT DD SYSOUT=*                                                  
+//SYSUT1   DD DSN=FORA05.TEST4,DISP=SHR                                 
+//SYSUT2   DD SYSOUT=*                                                  
+//SYSIN    DD DATA                                                      
+/*                                                                                                                                                       
+
+
+***************************** Top of Data ******************************
+//FORA05A JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*           
+//**********************************                                    
+//*          DELETE                *                                    
+//**********************************                                    
+//STEP1   EXEC PGM=IEFBR14                                              
+//TESTDEL DD   DSN=FORA05.TEST2,DISP=(MOD,DELETE,DELETE),               
+//        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,                     
+//        SPACE=(TRK,(1,1))                                             
+//**********************************                                    
+//*          CREATE                *                                    
+//**********************************                                    
+//STEP2   EXEC PGM=IEFBR14                                              
+//TESTNEW DD   DSN=FORA05.TEST2,DISP=(NEW,CATLG,DELETE),                
+//        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,                     
+//        SPACE=(TRK,(1,1))      
+
+***************************** Top of Data ******************************
+//FORA05S JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*           
+//**********************************                                    
+//*          DELETE                *                                    
+//**********************************                                    
+//STEP1   EXEC PGM=IEFBR14                                              
+//TEST2DEL DD DSN=FORA05.TEST2.TRI,DISP=(MOD,DELETE),                   
+//        LIKE=FORA05.TEST2                                             
+/*                                                                      
+//**********************************                                    
+//*          SORT                  *                                    
+//**********************************                                    
+//STEP2   EXEC PGM=SORT                                                 
+//SYSOUT  DD   SYSOUT=*                                                 
+//SORTIN  DD   DSN=FORA05.TEST2,DISP=SHR                                
+//SORTOUT DD   DSN=FORA05.TEST2.TRI,DISP=(,CATLG,),                     
+//        LIKE=FORA05.TEST2                                             
+//SYSIN   DD   *                                                        
+ SORT FIELDS=(16,15,CH,D)                                               
+/*                                                                      
+//    
+
+***************************** Top of Data ******************************
+//FORA05S JOB ACCTFORA,'FORA05',CLASS=A,TIME=(,5),COND=(4,LT),          
+//         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*           
+//**********************************                                    
+//*          SORT                  *                                    
+//**********************************                                    
+//STEP2   EXEC PGM=SORT                                                 
+//SYSOUT  DD   SYSOUT=*                                                 
+//SORTIN  DD   DSN=FORA05.TEST2,DISP=SHR                                
+//SORTOUT DD   SYSOUT=*                                                 
+//SYSIN   DD   *                                                        
+ SORT FIELDS=(16,15,CH,D)                                               
+ INCLUDE COND=(16,1,CH,EQ,C'D')                                         
+/*                                                                      
+//                                                                                                                                                                                                                         
