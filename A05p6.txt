@@ -1,0 +1,97 @@
+000001        IDENTIFICATION DIVISION.                                         
+000002        PROGRAM-ID. A05P6                                                
+000003        ENVIRONMENT DIVISION.                                            
+000004        CONFIGURATION SECTION.                                           
+000005        SPECIAL-NAMES.                                                   
+000006            DECIMAL-POINT IS COMMA.                                      
+000007        DATA DIVISION.                                                   
+000008        WORKING-STORAGE SECTION.                                         
+000009        01 Z1      PIC 9   VALUE 5.                                      
+000010        01 Z2      PIC 9V9 VALUE 3,4.                                    
+000011        01 Z3      PIC S999V99    VALUE -11,64.                          
+000012        01 Z4      PIC S9(9)V9(9) VALUE ZEROES.                          
+000013        01 Z5      PIC S9(9)V9 VALUE ZEROES.                             
+000014        01 Z4-FORM PIC +(9),+(9).                                        
+000015        01 Z5-FORM PIC +(9),9.                                           
+000016        01 ZACC.                                                         
+000017            05 ZA      PIC X VALUE 'A'.                                  
+000018            05 ZB      PIC X VALUE 'B'.                                  
+000019            05 ZC      PIC X VALUE 'C'.                                  
+000020        01 ZACC-2.                                                       
+000021            05 ZD      PIC X.                                            
+000022            05 ZE      PIC X.                                            
+000023            05 ZF      PIC X.                                            
+000024        PROCEDURE DIVISION.                                              
+000025       *******                                                           
+000026            ADD Z1 Z2 Z3 5 TO Z4                                         
+000027            MOVE Z4 TO Z4-FORM                                           
+000028            DISPLAY 'RESULT     - ' Z4-FORM                              
+000029            MOVE Z4 TO Z5-FORM                                           
+000030            DISPLAY 'UNROUNDED  - ' Z5-FORM                              
+000031            MOVE 0 TO Z4                                                 
+000032            ADD Z1 Z2 Z3 5 TO Z5 ROUNDED                                 
+000033            MOVE Z5 TO Z5-FORM                                           
+000034            DISPLAY 'ROUNDED Z5 - ' Z5-FORM                              
+000035       *******                                                           
+000036            COMPUTE Z4 = Z1 + Z2 +  Z3 + 5                               
+000037            MOVE Z4 TO Z4-FORM                                           
+000038            DISPLAY Z4-FORM                                              
+000039       *******                                                           
+000040            SUBTRACT Z3 FROM Z4                                          
+000041            MOVE Z4 TO Z4-FORM                                           
+000042            DISPLAY Z4-FORM                                              
+000043       *******                                                           
+000044            MULTIPLY -1 BY Z4                                            
+000045            MOVE Z4 TO Z4-FORM                                           
+000046            DISPLAY Z4-FORM                                              
+000047       *******                                                           
+000048            DISPLAY ZA ' ' ZB ' ' ZC                                     
+000049            PERFORM COND.                                                
+000050            MOVE 'A' TO ZB                                               
+000051            DISPLAY ZA ' ' ZB ' ' ZC                                     
+000052            PERFORM COND.                                                
+000053            MOVE 'B' TO ZA                                               
+000054            DISPLAY ZA ' ' ZB ' ' ZC                                     
+000055            PERFORM COND.                                                
+000056       ********************                                              
+000057            DISPLAY SPACES                                               
+000058            ACCEPT ZACC                                                  
+000059            PERFORM UNTIL ZACC = 'FIN'                                   
+000060                DISPLAY ZACC                                             
+000061                PERFORM COND                                             
+000062                ACCEPT ZACC                                              
+000063            END-PERFORM.                                                 
+000064       ***********************                                           
+000065            DISPLAY SPACES                                               
+000066            ACCEPT ZACC-2                                                
+000067            PERFORM UNTIL ZACC-2 = 'FIN'                                 
+000068                PERFORM COND-EV                                          
+000069                ACCEPT ZACC-2                                            
+000070            END-PERFORM.                                                 
+000071            STOP RUN.                                                    
+000072       ***********************                                           
+000073        COND.                                                            
+000074            IF ZA = 'A'  AND ZB = 'B' AND ZC = 'C'                       
+000075                DISPLAY 'AFF1'                                           
+000076            ELSE                                                         
+000077                IF NOT ZA = 'A'  OR ZB = 'B'                             
+000078                    DISPLAY 'AFF2'                                       
+000079                ELSE                                                     
+000080                    DISPLAY 'RIEN'                                       
+000081                END-IF                                                   
+000082            END-IF.                                                      
+000083        COND-EV.                                                         
+000084            EVALUATE ZD                                                  
+000085                WHEN 'D'           DISPLAY 'TDTD'                        
+000086                WHEN 'E' WHEN 'F'  DISPLAY 'TDTE'                        
+000087                WHEN OTHER         DISPLAY 'AUCUN'                       
+000088            END-EVALUATE.                                                
+000089            EVALUATE ZE ALSO ZF                                          
+000090                WHEN 'E' ALSO 'F'  DISPLAY 'TDTF'                        
+000091                WHEN 'F' ALSO 'E'  DISPLAY 'TDTE'                        
+000092                WHEN OTHER         DISPLAY 'AUCUN'                       
+000093            END-EVALUATE.                                                
+000094            EVALUATE TRUE                                                
+000095                WHEN ZE > ZF DISPLAY 'TDTX'                              
+000096                WHEN ZE NOT = 'A'  DISPLAY 'TDTY'                        
+000097            END-EVALUATE.                                                

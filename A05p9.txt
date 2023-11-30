@@ -1,0 +1,16 @@
+000001        IDENTIFICATION DIVISION.                                         
+000002        PROGRAM-ID. A05P9.                                               
+000003        AUTHOR. NIKOLAI.                                                 
+000004        DATA DIVISION.                                                   
+000005        WORKING-STORAGE SECTION.                                         
+000006        01 TAB.                                                          
+000007            05 TAB-X    OCCURS 5 PIC 99.                                 
+000008        01 L-TAB        PIC 99.                                          
+000009        01 STR          PIC X(10) VALUE 'QWERTY'.                        
+000010        PROCEDURE DIVISION.                                              
+000011            MOVE LENGTH TAB TO L-TAB                                     
+000012            DISPLAY 'LENGTH TAB    - ' L-TAB                             
+000013            DIVIDE LENGTH TAB-X INTO LENGTH TAB GIVING L-TAB             
+000014            DISPLAY 'LENGTH OF TAB - ' L-TAB                             
+000015            DISPLAY 'SUBSTRING     - ' STR(3:1) ' - ' STR(2:2)           
+000016            STOP RUN.                                                    

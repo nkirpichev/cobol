@@ -1,0 +1,86 @@
+000001        IDENTIFICATION DIVISION.                                         
+000002        PROGRAM-ID. A05P4.                                               
+000003        AUTHOR. NIKOLAI.                                                 
+000004        DATE-WRITTEN. 21/11/2023.                                        
+000005        ENVIRONMENT DIVISION.                                            
+000006        CONFIGURATION SECTION.                                           
+000007        SPECIAL-NAMES.                                                   
+000008            DECIMAL-POINT IS COMMA.                                      
+000009        INPUT-OUTPUT SECTION.                                            
+000010        FILE-CONTROL.                                                    
+000011            SELECT FCLIENT ASSIGN TO DDCLIENT                            
+000012                   FILE STATUS IS FS.                                    
+000013        DATA DIVISION.                                                   
+000014        FILE SECTION.                                                    
+000015        FD  FCLIENT                                                      
+000016            RECORDING MODE IS F.                                         
+000017        01  ENR-CLIENT.                                                  
+000018            05 ENR-NUMCLI      PIC 99.                                   
+000019            05                 PIC X.                                    
+000020            05 ENR-NOM         PIC X(15).                                
+000021            05 ENR-PRENOM      PIC X(15).                                
+000022            05 ENR-DATE-ENT    PIC 9(8).                                 
+000023            05                 PIC X(39).                                
+000024        WORKING-STORAGE SECTION.                                         
+000025        01  FS                 PIC 99      VALUE ZEROES.                 
+000026        01  ENR-DATE-FORMAT    PIC 9999/99/99.                           
+000027        01  ENR-DATE-GRP.                                                
+000028            05 ENR-YEAR        PIC 9(4).                                 
+000029            05 ENR-MONTH       PIC 99.                                   
+000030            05 ENR-DAY         PIC 99.                                   
+000031        01  CNT                PIC 99 VALUE 0.                           
+000032        01                     PIC X VALUE ZEROES.                       
+000033            88 END-FILE              VALUE 'F'.                          
+000034        PROCEDURE DIVISION.                                              
+000035            PERFORM DEBUT                                                
+000036            PERFORM UNTIL END-FILE                                       
+000037               PERFORM READ-FILE                                         
+000038               PERFORM TRAITEMENT                                        
+000039            END-PERFORM                                                  
+000040            PERFORM FIN                                                  
+000041            STOP RUN.                                                    
+000042                                                                         
+000043        DEBUT.                                                           
+000044            OPEN INPUT FCLIENT                                           
+000045            IF FS NOT = ZEROES                                           
+000046               DISPLAY 'ERROR OPEN FILE: ' FS                            
+000047               STOP RUN                                                  
+000048            END-IF                                                       
+000049                                                                         
+000050            DISPLAY 'LISTE DE CLIENTS'.                                  
+000051        READ-FILE.                                                       
+000052            READ FCLIENT                                                 
+000053               AT END SET END-FILE TO TRUE                               
+000054               NOT AT END ADD 1 TO CNT                                   
+000055            END-READ                                                     
+000056            IF NOT FS = ZEROES                                           
+000057                IF FS = 10                                               
+000058                   IF CNT = 0                                            
+000059                       DISPLAY 'FILE IS VIDE'                            
+000060                   ELSE                                                  
+000061                       DISPLAY 'TOTAL RECORDS - ' CNT                    
+000062                   END-IF                                                
+000063                ELSE                                                     
+000064                   DISPLAY 'ERROR READ FILE: ' FS                        
+000065                   STOP RUN                                              
+000066                END-IF                                                   
+000067            END-IF.                                                      
+000068       *READING FILE     
+000069        TRAITEMENT.                                                      
+000070            IF FS = ZEROES                                               
+000071               MOVE ENR-DATE-ENT TO ENR-DATE-GRP                         
+000072               IF ENR-YEAR <= 2022                                       
+000073                  DISPLAY 'OLD CLIENT - '                                
+000074               ELSE                                                      
+000075                  DISPLAY 'NEW CLIENT - '                                
+000076               END-IF                                                    
+000077                                                                         
+000078               MOVE ENR-DATE-ENT TO ENR-DATE-FORMAT                      
+000079               DISPLAY '   NUMERO   - ' ENR-NUMCLI                       
+000080               DISPLAY '   NOM      - ' ENR-NOM                          
+000081               DISPLAY '   PRENOM   - ' ENR-PRENOM                       
+000082               DISPLAY '   DATE ENT - ' ENR-DATE-FORMAT                  
+000083               DISPLAY SPACES                                            
+000084            END-IF.                                                      
+000085        FIN.                                                             
+000086            CLOSE FCLIENT.                                                                                               

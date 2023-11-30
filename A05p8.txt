@@ -1,0 +1,161 @@
+000001        IDENTIFICATION DIVISION.                                       
+000002        PROGRAM-ID. A05P8A.                                            
+000003        AUTHOR. NIKOLAI.                                               
+000004        ENVIRONMENT DIVISION.                                          
+000005        INPUT-OUTPUT SECTION.                                          
+000006        FILE-CONTROL.                                                  
+000007            SELECT FINPUT ASSIGN TO DDINPUT                            
+000008                   FILE STATUS IS FS.                                  
+000009            SELECT FOUTPUT ASSIGN TO DDOUTPUT                          
+000010                   FILE STATUS IS FS1.                                 
+000011        DATA DIVISION.                                                 
+000012        FILE SECTION.                                                  
+000013        FD FINPUT.                                                     
+000014        01 ENT-INPUT.                                                  
+000015             05 E-CODE-PRDT     PIC X(4).                              
+000016             05                 PIC X.                                 
+000017             05 E-TYPE-MVT      PIC X.                                 
+000018             05                 PIC X.                                 
+000019             05 E-CTE-MVT       PIC 9(2).                              
+000020             05                 PIC X(71).                             
+000021        FD FOUTPUT.                                                    
+000022        01   ENT-OUTPUT.                                               
+000023             05 S-CODE-PRDT     PIC X(4).                              
+000024             05                 PIC X.                                 
+000025             05 S-TYPE-MVT      PIC X.                                 
+000026             05                 PIC X.                                 
+000027             05 S-CTE-MVT       PIC 9(2).                              
+000028             05                 PIC X.                                 
+000029             05 S-PRIX          PIC 999V99 COMP-3.                     
+000030             05                 PIC X(67).                             
+000031        WORKING-STORAGE SECTION.                                       
+000032        01 FS                   PIC 99 VALUE ZEROS.                    
+000033        01 FS1                  PIC 99.                                
+000034        01 ZONEERROR            PIC 9.                                 
+000035             88 OK              VALUE 0.                               
+000036             88 ISERROR         VALUE 1.                               
+000037        01 CNT                  PIC 99 VALUE ZEROS.                    
+000038        01 CNT-ERR              PIC 99 VALUE ZEROS.                 
+000039        01 CNT-ENR              PIC 99 VALUE ZEROS.                 
+000040        01                      PIC 9.                              
+000041             88 FILE-READ-OK    VALUE 1.                            
+000042             88 FIN-FILE        VALUE 0.                            
+000043        01 PRIX-TAB.                                                
+000044             05 PRIX-EL OCCURS 5                                    
+000045                        ASCENDING KEY IS PRIX-CODE                  
+000046                        INDEXED BY I.                               
+000047                  10 PRIX-CODE  PIC X(4).                           
+000048                  10 PRIX-VAL   PIC 999V99.                         
+000049        01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.           
+000050        01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.           
+000051        01 PRIX-TOTAL           PIC 9(5)V99  VALUE ZEROS.           
+000052        01 PRIX-TOTAL-F         PIC Z(4)9.99 VALUE ZEROS.           
+000053        01 PRIX-TOTAL-ALL       PIC 9(5)V99  VALUE ZEROS.           
+000054        01 PRIX-TOTAL-ALL-F     PIC Z(4)9.99 VALUE ZEROS.           
+000055        PROCEDURE DIVISION.                                         
+000056       *****************MAIN*****************                       
+000057             PERFORM DEBUT                                          
+000058             PERFORM EXECUTION UNTIL FIN-FILE                       
+000059             PERFORM FIN                                            
+000060             STOP RUN.                                              
+000061       *****************PROCEDURES**********                        
+000062        EXECUTION.                                                  
+000063             PERFORM LECTURE                                        
+000064             IF FILE-READ-OK                                        
+000065                  PERFORM CHECK-ERR-PRDT                            
+000066                  PERFORM CHECK-ERR-TYPE                            
+000067                  PERFORM CHECK-ERR-CNT                             
+000068                  PERFORM TRAITEMENT                                
+000069             END-IF.                                                
+000070       ***************                                              
+000071        DEBUT.                                                      
+000072             OPEN INPUT FINPUT                                      
+000073             IF FS NOT = ZEROES                                     
+000074                   DISPLAY 'ERROR OPEN FILE'                        
+000075                   STOP RUN                                         
+000076             END-IF                                                      
+000077             SET FILE-READ-OK TO TRUE                                    
+000078             OPEN OUTPUT FOUTPUT                                         
+000079             IF FS1 NOT = ZEROES                                         
+000080                   DISPLAY 'ERROR OPEN FILE'                             
+000081                   STOP RUN                                              
+000082             END-IF                                                      
+000083             MOVE 'Z001' TO PRIX-CODE(1)                                 
+000084             MOVE 051.69 TO PRIX-VAL(1).                                 
+000085             MOVE 'A001' TO PRIX-CODE(2)                                 
+000086             MOVE 004.05 TO PRIX-VAL(2).                                 
+000087             MOVE 'A006' TO PRIX-CODE(3)                                 
+000088             MOVE 100.00 TO PRIX-VAL(3).                                 
+000089             MOVE 'D110' TO PRIX-CODE(4)                                 
+000090             MOVE 581.55 TO PRIX-VAL(4).                                 
+000091             MOVE 'R001' TO PRIX-CODE(5)                                 
+000092             MOVE 078.00 TO PRIX-VAL(5).                                 
+000093       ******************CHECKING ERRORS*****                            
+000094        CHECK-ERR-PRDT.                                                  
+000095             IF E-CODE-PRDT = SPACES                                     
+000096                   DISPLAY '***LINE - ' CNT ' CODE ERROR - ' E-CODE-PRDT 
+000097                   SET ISERROR TO TRUE                                   
+000098             END-IF.                                                     
+000099        CHECK-ERR-TYPE.                                                  
+000100             IF E-TYPE-MVT NOT = 'E' AND E-TYPE-MVT NOT = 'S'            
+000101                   DISPLAY '***LINE - ' CNT ' TYPE ERROR - ' E-TYPE-MVT  
+000102                   SET ISERROR TO TRUE                                   
+000103             END-IF.                                                     
+000104        CHECK-ERR-CNT.                                                   
+000105             IF E-CTE-MVT NOT NUMERIC                                    
+000106                   DISPLAY '***LINE - ' CNT                              
+000107                           ' CTE NOT NUMERIC - ' E-CTE-MVT               
+000108                   SET ISERROR TO TRUE                                   
+000109             ELSE                                                        
+000110                   IF E-CTE-MVT < 1                                      
+000111                        DISPLAY '***LINE - ' CNT ' CTE = 0 - ' E-CTE-MVT 
+000112                        SET ISERROR TO TRUE                              
+000113                   END-IF                                                
+000114             END-IF.                                               
+000115       ************ READ / WRITE *****                             
+000116        TRAITEMENT.                                                
+000117             IF OK                                                 
+000118                   SEARCH ALL PRIX-EL                              
+000119                       AT END                                      
+000120                            MOVE 0 TO PRIX-VAL-S                   
+000121                            DISPLAY '***CODE PRODUIT NOT IN TABLE' 
+000122                       WHEN PRIX-CODE(I) = E-CODE-PRDT             
+000123                            MOVE PRIX-VAL(I) TO PRIX-VAL-S         
+000124                   END-SEARCH                                      
+000125                   MOVE E-CODE-PRDT TO S-CODE-PRDT                 
+000126                   MOVE E-TYPE-MVT TO S-TYPE-MVT                   
+000127                   MOVE E-CTE-MVT TO S-CTE-MVT                     
+000128                   MOVE PRIX-VAL-S TO S-PRIX                       
+000129                   WRITE ENT-OUTPUT                                
+000130                   ADD 1 TO CNT-ENR                                
+000131                   COMPUTE PRIX-TOTAL = PRIX-VAL-S * E-CTE-MVT     
+000132                   ADD PRIX-TOTAL TO PRIX-TOTAL-ALL                
+000133                   MOVE PRIX-TOTAL TO PRIX-TOTAL-F                 
+000134                   MOVE PRIX-VAL-S TO PRIX-VAL-S-F                 
+000135                   DISPLAY 'PRODUIT - ' E-CODE-PRDT                
+000136                            ' PRIX = ' PRIX-VAL-S-F                
+000137                            ' CTE = ' E-CTE-MVT                    
+000138                            ' PRIX TOTAL = ' PRIX-TOTAL-F          
+000139             ELSE                                                  
+000140                   ADD 1 TO CNT-ERR                                
+000141             END-IF.                                               
+000142        LECTURE.                                                   
+000143             READ FINPUT                                           
+000144                  AT END SET FIN-FILE TO TRUE                      
+000145                  NOT AT END ADD 1 TO CNT                          
+000146             END-READ                                              
+000147             SET OK TO TRUE                                        
+000148             IF FS NOT = ZEROS AND FS NOT = 10                     
+000149                 DISPLAY 'ERROR READING'                           
+000150                 STOP RUN                                          
+000151             END-IF.                                               
+000152        FIN.                                                             
+000153             DISPLAY SPACES                                              
+000154             MOVE PRIX-TOTAL-ALL TO PRIX-TOTAL-ALL-F                     
+000155             DISPLAY 'PRIX TOTAL ALL - ' PRIX-TOTAL-ALL-F                
+000156             DISPLAY SPACES                                              
+000157             DISPLAY 'TOTAL          - ' CNT                             
+000158             DISPLAY 'TOTAL ERROR    - ' CNT-ERR                         
+000159             DISPLAY 'TOTAL ENREG    - ' CNT-ENR                         
+000160             CLOSE FINPUT                                                
+000161             CLOSE FOUTPUT.                                              

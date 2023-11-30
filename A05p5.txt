@@ -1,0 +1,81 @@
+000001        IDENTIFICATION DIVISION.                                         
+000002        PROGRAM-ID. A05P5.                                               
+000003        DATA DIVISION.                                                   
+000004        WORKING-STORAGE SECTION.                                         
+000005        01 V1 PIC X(40) VALUE 'IL ETAIT UNE FOIS UN MARCHAND DE FOIES'.  
+000006        01 DECMP REDEFINES V1.                                           
+000007            05 STR PIC X(8) OCCURS 5.                                    
+000008        01 V2 PIC X(40).                                                 
+000009        01 COUNTSPACES PIC 99 VALUE ZERO.                                
+000010        01 CNT         PIC 9 VALUE 1.                                    
+000011        01 I           PIC 99.                                           
+000012        01 I-CH        PIC 9.                                            
+000013        01 ISNUMBER    PIC X.                                            
+000014        01 V3          PIC X(10) VALUE 'ARTHUR'.                         
+000015        01 V4          PIC X(10) VALUE 'RIMBAUD'.                        
+000016        01 V6          PIC X(10) VALUE 'RIMBAUDTR'.                      
+000017        01 V5          PIC X(35).                                        
+000018        01 V7          PIC X(24) VALUE 'AAAAA;BBBBB;CCCCC;DDDDD;'.       
+000019        01 TAB-V7.                                                       
+000020             05 ROW-V7 PIC X(5) OCCURS 4.                                
+000021        PROCEDURE DIVISION.                                              
+000022       *****                                                             
+000023            DISPLAY V1                                                   
+000024            INSPECT V1 TALLYING COUNTSPACES FOR ALL SPACES               
+000025            DISPLAY 'TOTAL SPACES - ' COUNTSPACES                        
+000026            MOVE V1 TO V2                                                
+000027            INSPECT V2 REPLACING ALL 'FOI' BY 'OIF'                      
+000028            DISPLAY 'REPLACING 1  - ' V2                                 
+000029            MOVE V1 TO V2                                                
+000030            INSPECT V2 REPLACING FIRST ' ' BY '*'                        
+000031            DISPLAY 'REPLACING 2  - ' V2                                 
+000032       **** DISPLAY 'DECOMPOSER V1- ' V1-STR(2)                          
+000033                                                                         
+000034            PERFORM UNTIL CNT > 5   
+000035               MOVE 0 TO COUNTSPACES                                     
+000036               INSPECT STR(CNT) TALLYING COUNTSPACES FOR LEADING SPACES  
+000037               DISPLAY 'POSTE - ' CNT ' LEADING SPACES - ' COUNTSPACES   
+000038               ADD 1 TO CNT                                              
+000039            END-PERFORM                                                  
+000040            MOVE V1 TO V2                                                
+000041            INSPECT V2 CONVERTING 'AEIOUY' TO '123456'                   
+000042            DISPLAY 'CONVERTING   - ' V2                                 
+000043       *****************                                                 
+000044            MOVE 1 TO CNT                                                
+000045            PERFORM UNTIL CNT > 5                                        
+000046               MOVE 'F' TO ISNUMBER                                      
+000047               INSPECT STR(CNT) CONVERTING 'AEIOUY' TO '123456'          
+000048               PERFORM VARYING I FROM 0 BY 1 UNTIL I > 9                 
+000049                  MOVE 0 TO COUNTSPACES                                  
+000050                  MOVE I TO I-CH                                         
+000051                  INSPECT STR(CNT) TALLYING COUNTSPACES FOR ALL I-CH     
+000052       *         DISPLAY STR(CNT) ' - ' I-CH ' - ' COUNTSPACES           
+000053                  IF NOT COUNTSPACES = 0                                 
+000054                     MOVE 'T' TO ISNUMBER                                
+000055                  END-IF                                                 
+000056                END-PERFORM                                              
+000057                IF ISNUMBER = 'T'                                        
+000058                     DISPLAY 'POSTE - ' STR(CNT) ' - AVEC CHIFFRES'      
+000059                END-IF                                                   
+000060                ADD 1 TO CNT                                             
+000061            END-PERFORM                                                  
+000062       *  STRING ++                                                      
+000063            STRING V3   DELIMITED BY SPACES                              
+000064                   ' '  DELIMITED BY SIZE                                
+000065                   V4   DELIMITED BY SPACES                              
+000066                   ' '  DELIMITED BY SIZE                                
+000067                   V6   DELIMITED BY SIZE                                
+000068              INTO V5                                                                                         
+000069            DISPLAY SPACES                                               
+000070            DISPLAY V5                                                   
+000071       *  STRING --                                                      
+000072            MOVE 1 TO I                                                  
+000073            PERFORM VARYING CNT FROM 1 BY 1 UNTIL CNT > 4                
+000074               UNSTRING V7 DELIMITED BY ALL ';' INTO ROW-V7(CNT)         
+000075                  WITH POINTER I                                         
+000076               END-UNSTRING                                              
+000077               DISPLAY 'POSTE ' CNT ' - ' ROW-V7(CNT)                    
+000078            END-PERFORM                                                  
+000079            DISPLAY SPACES                                               
+000080       *    DISPLAY TAB-V7                                               
+000081            STOP RUN.                                                    
