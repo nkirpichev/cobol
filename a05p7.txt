@@ -1,0 +1,61 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P7.
+       AUTHOR. NIKOLAI.
+       DATE-WRITTEN. 28/11/2023.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FCLIENT ASSIGN TO DDCLIENT
+                  FILE STATUS IS FS.
+           SELECT FCLIENT-WRITE ASSIGN TO DDOUTPUT
+                  FILE STATUS IS FS-WR.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FCLIENT
+           RECORDING MODE IS F.
+      *FILE STRUCTURE
+       01  ENR-CLIENT.
+           05 ENR-NUMCLI      PIC 99.
+           05                 PIC X.
+           05 ENR-NOM         PIC X(15).
+           05 ENR-PRENOM      PIC X(15).
+           05 ENR-DATE-ENT    PIC 9(8).
+           05                 PIC X(39).
+       FD  FCLIENT-WRITE.
+       01  ENR-CLIENT-W       PIC X(80).
+      *01  ENR-CLIENT-W.
+      *    05 ENR-NUMCLI      PIC 99.
+      *    05                 PIC X.
+      *    05 ENR-NOM         PIC X(15).
+      *    05 ENR-PRENOM      PIC X(15).
+      *    05 ENR-DATE-ENT    PIC 9(8).
+      *    05                 PIC X(39).
+       WORKING-STORAGE SECTION.
+       01  FS                 PIC 99      VALUE ZEROES.
+       01  FS-WR              PIC 99      VALUE ZEROES.
+       77  CNT                PIC 9(3)    VALUE 0.
+       PROCEDURE DIVISION.
+           OPEN INPUT FCLIENT
+           IF FS NOT = ZEROES
+               DISPLAY 'ERROR'
+               STOP RUN
+           END-IF
+           OPEN OUTPUT FCLIENT-WRITE
+           IF FS-WR NOT = ZEROES
+               DISPLAY 'ERROR'
+               STOP RUN
+           END-IF
+      ********************
+           PERFORM UNTIL FS = 10
+              READ FCLIENT
+              IF ENR-DATE-ENT OF ENR-CLIENT > 20210100
+                  WRITE ENR-CLIENT-W FROM ENR-CLIENT
+              END-IF
+           END-PERFORM
+      ********************
+           CLOSE FCLIENT
+           CLOSE FCLIENT-WRITE
+           STOP RUN.

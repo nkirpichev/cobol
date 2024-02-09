@@ -1,0 +1,44 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P14.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      *****************************************************************
+      *
+       01  Z-SP1.
+            05 Z-CHOIX        PIC 9.
+      * 1 = DEMANDE DATE DU JOUR
+            05 Z-CODRET       PIC 9.
+      * 0 = OK, 1 = ERREUR
+            05 Z-DATEJOUR     PIC X(8).
+      * FORMAT AAAAMMJJ, BLANC SI CODE RETOUR = 1
+       01  Z2-SP2.
+      * DATE 1 AAAAMMJJ
+           05 Z2-DATE1        PIC 9(8).
+      * DATE 2 AAAAMMJJ
+           05 Z2-DATE2        PIC 9(8).
+      * CODE RETOUR : 0 = OK, 1 = ERREUR
+           05 Z2-CODRET       PIC 9.
+      * NB JOURS ENTRE DATE1 ET DATE2
+           05 Z2-NBJOURS      PIC 9(5).
+       PROCEDURE DIVISION.
+           MOVE 1 TO Z-CHOIX
+           CALL 'A99SP1' USING Z-SP1
+           DISPLAY 'CODE RETOUR : ' Z-CODRET
+           IF Z-CODRET = 0
+               DISPLAY Z-DATEJOUR
+           ELSE
+               DISPLAY SPACES
+           END-IF
+
+           DISPLAY SPACES
+           MOVE 20230506 TO Z2-DATE1
+           MOVE 20230306 TO Z2-DATE2
+           CALL 'A05SP2' USING Z2-SP2
+           DISPLAY 'CODE RETOUR : ' Z2-CODRET
+           IF Z2-CODRET = 0
+              DISPLAY Z2-NBJOURS
+           ELSE
+              DISPLAY SPACES
+           END-IF
+           STOP RUN.

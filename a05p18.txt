@@ -1,0 +1,58 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P18.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  Z5-SP5.
+           05 Z5-CODE-FONCTION      PIC X.
+              88 LECTURE            VALUE 'L'.
+              88 CREATION           VALUE 'C'.
+              88 MODIFICATION       VALUE 'M'.
+              88 SUPPRESSION        VALUE 'S'.
+           05 Z5-CODRET             PIC X.
+              88 CORRECT            VALUE ZEROES.
+              88 NON-TROUVE         VALUE '1'.
+              88 EN-DOUBLE          VALUE '2'.
+              88 ERREUR             VALUE '9'.
+           05 Z5-ENR.
+              10 Z5-CODE-PRDT       PIC X(4).
+              10 Z5-TYPE-MVT        PIC X.
+              10 Z5-QTE-MVT         PIC 99.
+              10 Z5-PRIX            PIC 999V99.
+       PROCEDURE DIVISION.
+           SET LECTURE TO TRUE
+           MOVE 'A005' TO Z5-CODE-PRDT
+      *    PERFORM CALL-PRO
+
+           MOVE 'A006' TO Z5-CODE-PRDT
+      *    PERFORM CALL-PRO
+
+           SET MODIFICATION TO TRUE
+           MOVE 'A010E0200500' TO Z5-ENR
+      *    PERFORM CALL-PRO
+
+           SET CREATION TO TRUE
+           MOVE 'A998E0200500' TO Z5-ENR
+      *    PERFORM CALL-PRO
+
+           SET CREATION TO TRUE
+           MOVE 'A999E0200500' TO Z5-ENR
+      *    PERFORM CALL-PRO
+
+           SET SUPPRESSION TO TRUE
+           MOVE 'D120' TO Z5-ENR
+           PERFORM CALL-PRO
+
+           SET SUPPRESSION TO TRUE
+           MOVE 'A999' TO Z5-ENR
+      *    PERFORM CALL-PRO
+
+           STOP RUN.
+       CALL-PRO.
+           CALL 'A05SP5' USING Z5-SP5
+           EVALUATE Z5-CODRET
+                WHEN 0 DISPLAY Z5-CODE-FONCTION ' OK ' Z5-ENR
+                WHEN 1 DISPLAY 'KEY NOT FOUND - ' Z5-CODE-PRDT
+                WHEN 2 DISPLAY 'KEY DOUBLE - ' Z5-CODE-PRDT
+                WHEN OTHER DISPLAY 'ERROR' Z5-CODRET
+           END-EVALUATE.

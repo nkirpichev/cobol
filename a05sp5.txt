@@ -1,0 +1,109 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP5.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FKSDS ASSIGN TO DDINPUT
+           ORGANIZATION IS INDEXED
+           RECORD KEY IS E-CODE-PRDT
+           ACCESS MODE IS RANDOM
+           FILE STATUS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FKSDS.
+       01 ENR.
+           05 E-CODE-PRDT    PIC X(4).
+           05                PIC X.
+           05 E-TYPE-MVT     PIC X.
+           05                PIC X.
+           05 E-CTE-MVT      PIC 99.
+           05                PIC X.
+           05 E-PRIX         PIC 999V99.
+           05                PIC X(65).
+       WORKING-STORAGE SECTION.
+       01 FS                 PIC 99.
+       LINKAGE SECTION.
+       01  Z5-SP5.
+           05 Z5-CODE-FONCTION      PIC X.
+              88 LECTURE            VALUE 'L'.
+              88 CREATION           VALUE 'C'.
+              88 MODIFICATION       VALUE 'M'.
+              88 SUPPRESSION        VALUE 'S'.
+           05 Z5-CODRET             PIC X.
+              88 CORRECT            VALUE ZEROES.
+              88 NON-TROUVE         VALUE '1'.
+              88 EN-DOUBLE          VALUE '2'.
+              88 ERREUR             VALUE '9'.
+           05 Z5-ENR.
+              10 Z5-CODE-PRDT       PIC X(4).
+              10 Z5-TYPE-MVT        PIC X.
+              10 Z5-QTE-MVT         PIC 99.
+              10 Z5-PRIX            PIC 999V99.
+       PROCEDURE DIVISION USING Z5-SP5.
+           PERFORM DEBUT
+           EVALUATE Z5-CODE-FONCTION
+               WHEN 'C' PERFORM ECRITURE
+               WHEN 'M' PERFORM REECRITURE
+               WHEN 'L' PERFORM LECTURE-FILE
+               WHEN 'S' PERFORM SUPPRESSION-FILE
+               WHEN OTHER PERFORM NOFONCTION
+           END-EVALUATE
+      *    EVALUATE TRUE
+      *        WHEN CREATION     PERFORM ECRITURE
+      *        WHEN MODIFICATION PERFORM REECRITURE
+      *        WHEN LECTURE      PERFORM LECTURE-FILE
+      *        WHEN SUPPRESSION  PERFORM SUPPRESSION-FILE
+      *        WHEN OTHER        PERFORM NOFONCTION
+      *    END-EVALUATE
+           PERFORM FIN
+           GOBACK.
+       DEBUT.
+           OPEN I-O FKSDS
+           IF FS NOT = ZEROS
+                MOVE 9 TO Z5-CODRET
+                GOBACK
+           END-IF.
+       REECRITURE.
+           MOVE SPACES TO ENR
+           MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+           MOVE Z5-TYPE-MVT  TO E-TYPE-MVT
+           MOVE Z5-QTE-MVT   TO E-CTE-MVT
+           MOVE Z5-PRIX      TO E-PRIX
+           REWRITE ENR
+                 INVALID KEY MOVE 2 TO Z5-CODRET
+                 NOT INVALID KEY
+                     MOVE 0 TO Z5-CODRET
+           END-REWRITE.
+       ECRITURE.
+           MOVE SPACES TO ENR
+           MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+           MOVE Z5-TYPE-MVT  TO E-TYPE-MVT
+           MOVE Z5-QTE-MVT   TO E-CTE-MVT
+           MOVE Z5-PRIX      TO E-PRIX
+           WRITE ENR
+                 INVALID KEY MOVE 1 TO Z5-CODRET
+                 NOT INVALID KEY
+                     MOVE 0 TO Z5-CODRET
+           END-WRITE.
+       LECTURE-FILE.
+           MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+           READ FKSDS
+                 INVALID KEY MOVE 1 TO Z5-CODRET
+                 NOT INVALID KEY
+                     MOVE ENR TO Z5-ENR
+                     MOVE 0 TO Z5-CODRET
+           END-READ.
+       SUPPRESSION-FILE.
+           MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+           DELETE FKSDS
+                 INVALID KEY MOVE 1 TO Z5-CODRET
+                 NOT INVALID KEY
+                     MOVE 0 TO Z5-CODRET
+           END-DELETE.
+       NOFONCTION.
+           MOVE 9 TO Z5-CODRET
+           .
+       FIN.
+           CLOSE FKSDS
+           .

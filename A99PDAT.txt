@@ -1,0 +1,98 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A99PDAT.
+       AUTHOR. OTEUR.
+       DATE-WRITTEN. 28/03/2023.
+      ******************************************************************
+      *  FONCTION DU PROGRAMME :  PROGRAMME APPELANT                   *
+      *  230328 : CREATION DU PROGRAMME                                *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  EXO9SP         PIC X(8) VALUE 'EXO9SP'.
+
+      * DESCRIPTION DE LA ZONE DE COMMUNICATION AVEC LE SOUS-PROGRAMME
+      * DE CONTROLE DE LA DATE
+       01  ZCOM.
+           05 ZDATE.
+              10 ZANNEE       PIC 9(4).
+              10 ZMOIS        PIC 9(2).
+              10 ZJOUR        PIC 9(2).
+           05 ZCDRET          PIC 9.
+              88 ZCDRET-OK    VALUE 0.
+              88 ZCDRET-KO    VALUE 1.
+           05 ZDATE-EDIT      PIC X(17).
+
+       PROCEDURE DIVISION.
+      * CONSTITUTION DU JEU DE TESTS
+      * ---> DATES INVALIDES
+           INITIALIZE ZCOM
+           MOVE 'ABCDEFGH'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '21000001'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '21001301'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '21000500'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '21000532'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '20230229'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '21000229'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+      * ---> DATES VALIDES
+           INITIALIZE ZCOM
+           MOVE '20230301'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '20230430'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '20230228'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '20000229'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           INITIALIZE ZCOM
+           MOVE '20240229'       TO ZDATE
+           PERFORM APPEL-EXO9SP
+
+           STOP RUN
+           .
+
+       APPEL-EXO9SP.
+           DISPLAY '-----------------------------------'
+           DISPLAY 'ZDATE : ' ZDATE
+
+           CALL EXO9SP USING ZCOM
+
+           EVALUATE TRUE
+            WHEN ZCDRET-OK
+                 DISPLAY '       DATE VALIDE'
+                 DISPLAY '       ZDATE-EDIT : ' ZDATE-EDIT
+            WHEN ZCDRET-KO
+                 DISPLAY '       DATE INVALIDE'
+           END-EVALUATE
+
+           .

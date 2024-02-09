@@ -1,0 +1,117 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05JPGMT.
+       AUTHOR. NIKOLAI.
+       DATE-WRITTEN. 15/12/2023.
+      ******************************************************************
+      *         LECTURE DE LA TABLE CHANSON                            *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       INPUT-OUTPUT SECTION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * COMPTEURS
+       77  CPT-LUS            PIC 99 VALUE ZEROES.
+
+      * INDICATEUR FIN DE TABLE
+       77                     PIC X  VALUE SPACES.
+           88 FIN-TABLE              VALUE '1'.
+
+      * PICTURES D'EDITION
+       77  SQLCODE-ED         PIC +(8)9 VALUE ZEROES.
+
+      * SQLCA
+           EXEC SQL INCLUDE SQLCA   END-EXEC.
+
+      * TABLE CHANSON
+           EXEC SQL INCLUDE CONTRAT END-EXEC.
+           EXEC SQL INCLUDE PERSONNE END-EXEC.
+
+      * DECLARATION DU CURSEUR
+           EXEC SQL DECLARE CURS CURSOR FOR
+            SELECT DISTINCT P.CODEP, P.IDENTITE, CODEA, SIREN
+                   FROM CONTRAT C JOIN PERSONNE P
+                   ON C.CODEP = P.CODEP
+                   ORDER BY CODEP
+      *     SELECT CODEC, TITREC, VALUE(CODEA, '****')
+      *     FROM CHANSON
+      *     ORDER BY TITREC
+           END-EXEC
+
+      * LIGNES D'EDITION
+       01  L1.
+           05            PIC X(9)   VALUE 'CODEP'.
+           05            PIC X(25)  VALUE 'IDENTITE'.
+           05            PIC X(6)   VALUE 'CODEA'.
+           05            PIC X(5)   VALUE 'SIREN'.
+
+       01  L2.
+           05            PIC X(55)  VALUE ALL '-'.
+
+       PROCEDURE DIVISION.
+           PERFORM DEBUT
+           PERFORM UNTIL FIN-TABLE
+              PERFORM AFFICHER-CHANSON
+              PERFORM LECTURE-CHANSON
+           END-PERFORM
+           PERFORM FIN
+           STOP RUN
+           .
+
+       DEBUT.
+           EXEC SQL OPEN CURS END-EXEC
+           IF SQLCODE NOT = ZEROES
+              MOVE SQLCODE TO SQLCODE-ED
+              DISPLAY 'ERREUR OPEN CURS, SQLCODE: ' SQLCODE-ED
+              PERFORM FIN-ERREUR
+           END-IF
+
+      * 1ERE LECTURE CURS
+           PERFORM LECTURE-CHANSON
+           IF FIN-TABLE
+              DISPLAY 'TABLE CHANSON VIDE'
+              PERFORM FIN-ERREUR
+           END-IF
+
+           DISPLAY L2
+           DISPLAY L1
+           DISPLAY L2
+           .
+
+       AFFICHER-CHANSON.
+           ADD 1 TO CPT-LUS
+           DISPLAY P-CODEP '   '  IDENTITE ' ' CNT-CODEA ' ' CNT-SIREN
+           .
+
+       LECTURE-CHANSON.
+           INITIALIZE PERSONNE
+           INITIALIZE CONTRAT
+           EXEC SQL FETCH CURS
+            INTO :P-CODEP, :IDENTITE, :CNT-CODEA, :CNT-SIREN
+           END-EXEC
+
+           EVALUATE SQLCODE
+            WHEN ZEROES
+             CONTINUE
+            WHEN +100
+             SET FIN-TABLE TO TRUE
+            WHEN OTHER
+              MOVE SQLCODE TO SQLCODE-ED
+              DISPLAY 'ERREUR FETCH, SQLCODE : ' SQLCODE-ED
+              PERFORM FIN-ERREUR
+           END-EVALUATE
+           .
+
+       FIN-ERREUR.
+           MOVE 17 TO RETURN-CODE
+           STOP RUN
+           .
+
+       FIN.
+           EXEC SQL CLOSE CURS END-EXEC
+
+           DISPLAY SPACES
+           DISPLAY 'CPT-LUS : ' CPT-LUS
+           .

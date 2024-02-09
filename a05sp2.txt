@@ -1,0 +1,25 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP2.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01  Z2-SP2.
+      * DATE 1 AAAAMMJJ
+           05 Z2-DATE1        PIC 9(8).
+      * DATE 2 AAAAMMJJ
+           05 Z2-DATE2        PIC 9(8).
+      * CODE RETOUR : 0 = OK, 1 = ERREUR
+           05 Z2-CODRET       PIC 9.
+      * NB JOURS ENTRE DATE1 ET DATE2
+           05 Z2-NBJOURS      PIC 9(5).
+       PROCEDURE DIVISION USING Z2-SP2.
+           IF Z2-DATE1 IS NUMERIC AND Z2-DATE2 IS NUMERIC
+                MOVE 0 TO Z2-CODRET
+                COMPUTE Z2-NBJOURS =
+                    FUNCTION INTEGER-OF-DATE (Z2-DATE1) -
+                    FUNCTION INTEGER-OF-DATE (Z2-DATE2)
+
+           ELSE
+                MOVE 1 TO Z2-CODRET
+           END-IF
+           GOBACK.

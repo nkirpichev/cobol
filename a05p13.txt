@@ -1,0 +1,82 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P13.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FINPUT1  ASSIGN TO DDINPUT1
+                  FILE STATUS IS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FINPUT1.
+       01 ENR1 PIC X(80).
+       WORKING-STORAGE SECTION.
+       01 FS                   PIC 99 VALUE ZEROS.
+       01                      PIC 9.
+            88 FILE-READ-OK    VALUE 1.
+            88 FIN-FILE        VALUE 0.
+       01 ENT-INPUT1.
+            05 E-TYPE-ENR      PIC 9.
+            05                 PIC X.
+            05 E-CODE-PRDT     PIC X(4).
+            05                 PIC X.
+            05 E-DIFF.
+                10 E-TYPE-MVT      PIC X.
+                10                 PIC X.
+                10 E-CTE-MVT       PIC 9(2).
+                10                 PIC X(69).
+            05 REDEFINES E-DIFF.
+                10 E-PRIX          PIC 999V99.
+                10                 PIC X(68).
+        01 E-TYPE-MVT99        PIC X.
+        01 E-CTE-MVT99         PIC 99.
+        01 TAB-DISPLAY.
+            05 E-CODE-PRDT2    PIC X(4).
+            05                 PIC X.
+            05 E-TYPE-MVT2     PIC X.
+            05                 PIC X.
+            05 E-CTE-MVT2      PIC 9(2).
+            05                 PIC X.
+            05 E-PRIX2         PIC 999.99.
+       PROCEDURE DIVISION.
+      *****************MAIN*****************
+            PERFORM DEBUT
+            PERFORM LECTURE1
+            PERFORM UNTIL FIN-FILE
+               IF E-TYPE-ENR = 2
+                    MOVE E-PRIX TO E-PRIX2
+                    DISPLAY TAB-DISPLAY
+               ELSE
+                    PERFORM MOVEENR1
+               END-IF
+               PERFORM LECTURE1
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN.
+      *****************PROCEDURES**********
+       MOVEENR1.
+            MOVE E-CODE-PRDT TO E-CODE-PRDT2
+            MOVE E-TYPE-MVT TO E-TYPE-MVT2
+            MOVE E-CTE-MVT  TO E-CTE-MVT2.
+       DEBUT.
+            OPEN INPUT FINPUT1
+            SET FILE-READ-OK TO TRUE
+            IF FS NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            .
+       LECTURE1.
+            READ FINPUT1 INTO ENT-INPUT1
+                 AT END SET FIN-FILE TO TRUE
+            END-READ
+      *     DISPLAY ENT-INPUT1
+            IF FS NOT = ZEROS AND FS NOT = 10
+                DISPLAY 'ERROR READING'
+                STOP RUN
+            END-IF
+            .
+       FIN.
+            DISPLAY SPACES
+            DISPLAY 'FIN'
+            CLOSE FINPUT1.

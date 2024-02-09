@@ -1,0 +1,86 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P4.
+       AUTHOR. NIKOLAI.
+       DATE-WRITTEN. 21/11/2023.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FCLIENT ASSIGN TO DDCLIENT
+                  FILE STATUS IS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FCLIENT
+           RECORDING MODE IS F.
+       01  ENR-CLIENT.
+           05 ENR-NUMCLI      PIC 99.
+           05                 PIC X.
+           05 ENR-NOM         PIC X(15).
+           05 ENR-PRENOM      PIC X(15).
+           05 ENR-DATE-ENT    PIC 9(8).
+           05                 PIC X(39).
+       WORKING-STORAGE SECTION.
+       01  FS                 PIC 99      VALUE ZEROES.
+       01  ENR-DATE-FORMAT    PIC 9999/99/99.
+       01  ENR-DATE-GRP.
+           05 ENR-YEAR        PIC 9(4).
+           05 ENR-MONTH       PIC 99.
+           05 ENR-DAY         PIC 99.
+       01  CNT                PIC 99 VALUE 0.
+       01                     PIC X VALUE ZEROES.
+           88 END-FILE              VALUE 'F'.
+       PROCEDURE DIVISION.
+           PERFORM DEBUT
+           PERFORM UNTIL END-FILE
+              PERFORM READ-FILE
+              PERFORM TRAITEMENT
+           END-PERFORM
+           PERFORM FIN
+           STOP RUN.
+
+       DEBUT.
+           OPEN INPUT FCLIENT
+           IF FS NOT = ZEROES
+              DISPLAY 'ERROR OPEN FILE: ' FS
+              STOP RUN
+           END-IF
+
+           DISPLAY 'LISTE DE CLIENTS'.
+       READ-FILE.
+           READ FCLIENT
+              AT END SET END-FILE TO TRUE
+              NOT AT END ADD 1 TO CNT
+           END-READ
+           IF NOT FS = ZEROES
+               IF FS = 10
+                  IF CNT = 0
+                      DISPLAY 'FILE IS VIDE'
+                  ELSE
+                      DISPLAY 'TOTAL RECORDS - ' CNT
+                  END-IF
+               ELSE
+                  DISPLAY 'ERROR READ FILE: ' FS
+                  STOP RUN
+               END-IF
+           END-IF.
+      *READING FILE
+       TRAITEMENT.
+           IF FS = ZEROES
+              MOVE ENR-DATE-ENT TO ENR-DATE-GRP
+              IF ENR-YEAR <= 2022
+                 DISPLAY 'OLD CLIENT - '
+              ELSE
+                 DISPLAY 'NEW CLIENT - '
+              END-IF
+
+              MOVE ENR-DATE-ENT TO ENR-DATE-FORMAT
+              DISPLAY '   NUMERO   - ' ENR-NUMCLI
+              DISPLAY '   NOM      - ' ENR-NOM
+              DISPLAY '   PRENOM   - ' ENR-PRENOM
+              DISPLAY '   DATE ENT - ' ENR-DATE-FORMAT
+              DISPLAY SPACES
+           END-IF.
+       FIN.
+           CLOSE FCLIENT.

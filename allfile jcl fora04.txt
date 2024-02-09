@@ -1,0 +1,1328 @@
+ MEMBER NAME  FO4P1
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=$SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P1
+ //LKED.SYSIN DD  *
+     ENTRY    A04P1
+     NAME     A04P1(R)
+ //*
+ //STEP1  EXEC PGM=A04P1
+ //SYSOUT DD SYSOUT=*
+ //
+ MEMBER NAME  IEFBR14
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=$SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER TEST2
+ //************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST2,DISP=(MOD,DELETE,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,
+ //        SPACE=(TRK,(1,1))
+ //************************************************************
+ //* CREATION DU FICHIER TEST2
+ //************************************************************
+ //STEP2   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST2,DISP=(NEW,CATLG,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,
+ //        SPACE=(TRK,(1,1))
+ MEMBER NAME  TEST3
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=$SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER TEST3
+ //************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST3,DISP=(MOD,DELETE,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=50,
+ //        SPACE=(CYL,(1,0))
+ //************************************************************
+ //* CREATION DU FICHIER TEST3
+ //************************************************************
+ //STEP2   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST3,DISP=(NEW,CATLG,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=50,
+ //        SPACE=(CYL,(1,0))
+ MEMBER NAME  IEBGENER
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER TEST4                             *
+ //************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST4,DISP=(MOD,DELETE,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,
+ //        SPACE=(TRK,(1,1))
+ //************************************************************
+ //* CREATION DU FICHIER TEST4                                *
+ //************************************************************
+ //STEP2   EXEC PGM=IEFBR14
+ //TOTO    DD   DSN=FORA04.TEST4,DISP=(NEW,CATLG,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,
+ //        SPACE=(TRK,(1,1))
+ //************************************************************
+ //* COPIE DE TEST2 DANS TEST4                                *
+ //************************************************************
+ //STEP3    EXEC PGM=IEBGENER
+ //SYSPRINT DD SYSOUT=*
+ //SYSUT1   DD DSN=FORA04.TEST2,DISP=SHR
+ //SYSUT2   DD DSN=FORA04.TEST4,
+ //            DISP=(MOD,CATLG,DELETE)
+ //SYSIN    DD DATA
+ MEMBER NAME  AFFICH
+ //*
+ //**********************************************************************
+ //* PROCEDURE D'AFFICHAGE DU CONTENU D'UN FICHIER SEQUENTIEL           *
+ //**********************************************************************
+ //AFFICH   PROC
+ //STEP3    EXEC PGM=IEBGENER
+ //SYSPRINT DD   SYSOUT=*
+ //SYSUT1   DD   DSN=&FICHIER,DISP=SHR
+ //SYSUT2   DD   SYSOUT=*
+ //SYSIN    DD   *
+ /*
+ //         PEND
+ MEMBER NAME  AAFFICH
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //*******************************************************************
+ //* INDIQUER LA BIBLIOTHEQUE OU SE TROUVE LA PROCEDURE CATALOGUEE   *
+ //*******************************************************************
+ //BIBLI   JCLLIB ORDER=FORA04.LIB.JCL
+ //*******************************************************************
+ //* APPELER LA PROCEDURE POUR LE FICHIER TEST2                      *
+ //*******************************************************************
+ //        SET FICHIER=FORA04.TEST2
+ //STEP1   EXEC AFFICH
+ //*******************************************************************
+ //* APPELER LA PROCEDURE POUR LE FICHIER TEST4                      *
+ //*******************************************************************
+ //        SET FICHIER=FORA04.TEST4
+ //STEP2   EXEC AFFICH
+ //
+ MEMBER NAME  SORT
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER TEST2.TRI                         *
+ //************************************************************
+ //STEP1    EXEC PGM=IEFBR14
+ //FICHSUPP DD   DSN=FORA04.TEST2.TRI,DISP=(MOD,DELETE,DELETE),
+ //         LIKE=FORA04.TEST2
+ //************************************************************
+ //* TRI DU FICHIER TEST2 SUR LE NOM                          *
+ //************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.TEST2.TRI,DISP=(,CATLG),
+ //         LIKE=FORA04.TEST2
+ //SYSIN    DD   *
+   SORT FIELDS=(16,15,CH,D)
+ /*
+ //
+ MEMBER NAME  SORT2
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* TRI DU FICHIER TEST2 SUR LE NOM (DECROISSANT, D{BUT = D) *
+ //************************************************************
+ //STEP1    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //SORTOUT  DD   SYSOUT=*
+ //SORTOF1  DD   SYSOUT=*
+ //SYSIN    DD   *
+   SORT FIELDS=(16,15,CH,D)
+   OUTFIL FILES=1
+   INCLUDE COND=(16,1,CH,EQ,C'D')
+ /*
+ //
+ MEMBER NAME  SORT3
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER CLIENT.SEQ                        *
+ //************************************************************
+ //STEP1    EXEC PGM=IEFBR14
+ //FICHSUPP DD   DSN=FORA04.CLIENT.SEQ,DISP=(MOD,DELETE,DELETE),
+ //         LIKE=FORA04.TEST2
+ //************************************************************
+ //* TRI DU FICHIER TEST2 SUR LE NOM, INVERSION NOM/PRENOM    *
+ //************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.CLIENT.SEQ,DISP=(,CATLG),
+ //         LIKE=FORA04.TEST2
+ //SYSIN    DD   *
+   SORT FIELDS=(16,15,CH,A)
+   OUTREC FIELDS=(16,15,1,15,31,50)
+ /*
+ //
+ MEMBER NAME  SORT4
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* SUPPRESSION DU FICHIER CLIENT.SEQ                        *
+ //************************************************************
+ //STEP1    EXEC PGM=IEFBR14
+ //FICHSUPP DD   DSN=FORA04.CLIENT.SEQ,DISP=(MOD,DELETE,DELETE),
+ //         LIKE=FORA04.TEST2
+ //************************************************************
+ //* TRI DU FICHIER TEST2 SUR LE NOM, INVERSION NOM/PRENOM    *
+ //************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.CLIENT.SEQ,DISP=(,CATLG),
+ //         LIKE=FORA04.TEST2
+ //SYSIN    DD   *
+   SORT FIELDS=(16,15,CH,A)
+   OUTREC FIELDS=(SEQNUM,2,ZD,16,15,1,15,31,48)
+ /*
+ //
+ MEMBER NAME  SORT5
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* CONCATENATION DE FICHIERS                                *
+ //************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //         DD   DSN=FORA04.TEST4,DISP=SHR
+ //SORTOUT  DD   SYSOUT=*
+ //SYSIN    DD   *
+   SORT FIELDS=COPY
+ /*
+ //
+ MEMBER NAME  SORT6
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* VENTILATION DE FICHIERS                                  *
+ //************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.TEST2,DISP=SHR
+ //SORTOF1  DD   SYSOUT=*
+ //SORTOF2  DD   SYSOUT=*
+ //SYSIN    DD   *
+   SORT FIELDS=COPY
+   OUTFIL FILES=1,
+   INCLUDE=(16,1,CH,EQ,C'D')
+   OUTFIL FILES=2,
+   INCLUDE=(16,1,CH,EQ,C'G')
+ /*
+ //
+ MEMBER NAME  IDCAMS
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //*******************************************************************
+ //* DEL/DEF CLIENT.KSDS ET REPRO                                    *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.CLIENT.KSDS
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.CLIENT.KSDS) -
+          TRACKS(1 1) -
+          KEYS(2 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.CLIENT.KSDS.DATA) -
+          ) -
+          INDEX (NAME(FORA04.CLIENT.KSDS.INDEX) -
+          )
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                *
+ //*******************************************************************
+ //STEP2    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   REPRO INDATASET (FORA04.CLIENT.SEQ) -
+         OUTDATASET(FORA04.CLIENT.KSDS)
+ /* MANI}RE ALTERNATIVE
+ //STEP2    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //FIC1     DD   DSN=FORA04.CLIENT.SEQ,DISP=SHR
+ //FIC2     DD   DSN=FORA04.CLIENT.KSDS,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE   (FIC1)
+   REPRO OUTFILE  (FIC2)
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //FIC1     DD   DSN=FORA04.CLIENT.KSDS,DISP=SHR
+ //SYSIN    DD   *
+   PRINT INFILE   (FIC1) CHAR -
+   FROMKEY('02') TOKEY('99')
+ //
+ MEMBER NAME  FO4P2
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P2
+ //LKED.SYSIN DD  *
+     ENTRY    A04P2
+     NAME     A04P2(R)
+ //*
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT                             *
+ //* 1ER CAS : FICHIER COMPRENANT DES ENREGISTREMENTS (CAS NORMAL)      *
+ //* 2EME CAS : FICHIER VIDE                                            *
+ //**********************************************************************
+ //STEP1  EXEC PGM=A04P2
+ //DDCLIENT DD DSN=FORA04.CLIENT.SEQ,DISP=SHR
+ //STEP2  EXEC PGM=A04P2
+ //DDCLIENT DD DUMMY
+ //SYSOUT   DD SYSOUT=*
+ //
+ MEMBER NAME  A04P3
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P3
+ //LKED.SYSIN DD  *
+     ENTRY    A04P3
+     NAME     A04P3(R)
+ //*
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT                             *
+ //* 1ER CAS : FICHIER COMPRENANT DES ENREGISTREMENTS (CAS NORMAL)      *
+ //* 2EME CAS : FICHIER VIDE                                            *
+ //**********************************************************************
+ //STEP1  EXEC PGM=A04P3
+ //SYSIN    DD *
+ ABC
+ BB
+
+ ACC
+ BBC
+ FIN
+ D
+ E
+ F
+ A
+ 8
+ EF
+ FE
+ AH
+ VF
+ 57
+ 28
+ 82
+ A0
+ 88
+ HE
+ NO
+ //*
+ //SYSOUT   DD SYSOUT=*
+ //
+ MEMBER NAME  F04P4
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P4
+ //LKED.SYSIN DD  *
+     ENTRY    A04P4
+     NAME     A04P4(R)
+ //*
+ //************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.CLIENT.SEQ.NEW             *
+ //************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //DDNEW   DD   DSN=FORA04.CLIENT.SEQ.NEW,
+ //        LIKE=FORA04.CLIENT.SEQ,
+ //        DISP=(MOD,DELETE,DELETE)
+ //************************************************************
+ //* CREATION DU FICHIER FORA04.CLIENT.SEQ.NEW                *
+ //************************************************************
+ //STEP2   EXEC PGM=IEFBR14
+ //OUTPUT  DD   DSN=FORA04.CLIENT.SEQ.NEW,
+ //        LIKE=FORA04.CLIENT.SEQ,
+ //        DISP=(NEW,CATLG,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT                             *
+ //**********************************************************************
+ //STEP3    EXEC PGM=A04P4
+ //DDCLIENT DD DSN=FORA04.CLIENT.SEQ,DISP=SHR
+ //DDNEW    DD DSN=FORA04.CLIENT.SEQ.NEW,DISP=SHR
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P5
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P5
+ //LKED.SYSIN DD  *
+     ENTRY    A04P5
+     NAME     A04P5(R)
+ //*
+ //**********************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.FMVTS                                *
+ //**********************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //SUPPR   DD   DSN=FORA04.FMVTS,
+ //        LIKE=FORA04.FMVT,
+ //        DISP=(MOD,DELETE,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP2    EXEC PGM=A04P5
+ //DDENT    DD DSN=FORA04.FMVT,DISP=SHR
+ //DDSORT   DD DSN=FORA04.FMVTS,DISP=(NEW,CATLG,DELETE),
+ //         LIKE=FORA04.FMVT
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P5A
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P5A
+ //LKED.SYSIN DD  *
+     ENTRY    A04P5A
+     NAME     A04P5A(R)
+ //*
+ //**********************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.FMVTS                                *
+ //**********************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //SUPPR   DD   DSN=FORA04.FMVTS2,
+ //        LIKE=FORA04.FMVT,
+ //        DISP=(MOD,DELETE,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP2    EXEC PGM=A04P5A
+ //DDENT    DD DSN=FORA04.FMVT,DISP=SHR
+ //DDSORT   DD DSN=FORA04.FMVTS2,DISP=(NEW,CATLG,DELETE),
+ //         LIKE=FORA04.FMVT
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P6
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P6
+ //LKED.SYSIN DD  *
+     ENTRY    A04P6
+     NAME     A04P6(R)
+ //*
+ //**********************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.FMVTS                                *
+ //**********************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //SUPPR   DD   DSN=FORA04.FMVT2S,
+ //        LIKE=FORA04.FMVT2,
+ //        DISP=(MOD,DELETE,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP2    EXEC PGM=A04P6
+ //DDENT    DD DSN=FORA04.FMVT2,DISP=SHR
+ //DDSORT   DD DSN=FORA04.FMVT2S,DISP=(NEW,CATLG,DELETE),
+ //         LIKE=FORA04.FMVT2
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P7
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P7
+ //LKED.SYSIN DD  *
+     ENTRY    A04P7
+     NAME     A04P7(R)
+ //*
+ //**********************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.FMVTS                                *
+ //**********************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //SUPPR   DD   DSN=FORA04.FMVTS,
+ //        LIKE=FORA04.FMVT3,
+ //        DISP=(MOD,DELETE,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP2    EXEC PGM=A04P7
+ //DDENT1   DD DSN=FORA04.FMVT3,DISP=SHR
+ //DDENT2   DD DSN=FORA04.FMVT4,DISP=SHR
+ //DDSORT   DD DSN=FORA04.FMVTS,DISP=(NEW,CATLG,DELETE),
+ //         LIKE=FORA04.FMVT3
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P8
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P8
+ //LKED.SYSIN DD  *
+     ENTRY    A04P8
+     NAME     A04P8(R)
+ //*
+ //**********************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.FMVTS                                *
+ //**********************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //SUPPR   DD   DSN=FORA04.FMVTS,
+ //        LIKE=FORA04.FMVT6,
+ //        DISP=(MOD,DELETE,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP2    EXEC PGM=A04P8
+ //DDENT    DD DSN=FORA04.FMVT6,DISP=SHR
+ //DDSORT   DD DSN=FORA04.FMVTS,DISP=(NEW,CATLG,DELETE),
+ //         LIKE=FORA04.FMVT6
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P9
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P9
+ //LKED.SYSIN DD  *
+     ENTRY    A04P9
+     NAME     A04P9(R)
+ //*
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DU FICHIER CLIENT, ECRITURE                   *
+ //**********************************************************************
+ //STEP1    EXEC PGM=A04P9
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P10
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P10
+ //LKED.SYSIN DD  *
+     ENTRY    A04P10
+     NAME     A04P10(R)
+ //*
+ //*******************************************************************
+ //* DEL/DEF FORA04.PRDT.KSDS                                        *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.PRDT.KSDS
+   DELETE FORA04.PRDT.SEQ.TRI
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.PRDT.KSDS) -
+          TRACKS(1 1) -
+          KEYS(4 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.PRDT.KSDS.DATA) -
+          ) -
+          INDEX (NAME(FORA04.PRDT.KSDS.INDEX) -
+          )
+ //**********************************************************************
+ //* TRI DU FICHIER FORA04.PRDT.SEQ SUR LE CODE PRODUIT                 *
+ //**********************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.PRDT.SEQ,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.PRDT.SEQ.TRI,DISP=(,CATLG),
+ //         LIKE=FORA04.PRDT.SEQ
+ //SYSIN    DD   *
+   SORT FIELDS=(1,4,CH,A)
+ /*
+ //**********************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                   *
+ //**********************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   REPRO INDATASET (FORA04.PRDT.SEQ.TRI) -
+         OUTDATASET(FORA04.PRDT.KSDS)
+ //**********************************************************************
+ //* LECTURE DU KSDS                                                    *
+ //**********************************************************************
+ //STEP4    EXEC PGM=A04P10
+ //DDENT    DD   DSN=FORA04.PRDT.KSDS,DISP=SHR
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P11
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P11
+ //LKED.SYSIN DD  *
+     ENTRY    A04P11
+     NAME     A04P11(R)
+ //*
+ //*******************************************************************
+ //* DEL/DEF FORA04.PRDT.KSDS                                        *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.PRDT.KSDS
+   DELETE FORA04.PRDT.SEQ.TRI
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.PRDT.KSDS) -
+          TRACKS(1 1) -
+          KEYS(4 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.PRDT.KSDS.DATA) -
+          ) -
+          INDEX (NAME(FORA04.PRDT.KSDS.INDEX) -
+          )
+ //**********************************************************************
+ //* TRI DU FICHIER FORA04.PRDT.SEQ SUR LE CODE PRODUIT                 *
+ //**********************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.PRDT.SEQ,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.PRDT.SEQ.TRI,DISP=(,CATLG),
+ //         LIKE=FORA04.PRDT.SEQ
+ //SYSIN    DD   *
+   SORT FIELDS=(1,4,CH,A)
+ /*
+ //**********************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                   *
+ //**********************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   REPRO INDATASET (FORA04.PRDT.SEQ.TRI) -
+         OUTDATASET(FORA04.PRDT.KSDS)
+ //**********************************************************************
+ //* LECTURE DU KSDS                                                    *
+ //**********************************************************************
+ //STEP4    EXEC PGM=A04P11
+ //DDENT    DD   DSN=FORA04.PRDT.KSDS,DISP=SHR
+ //SYSIN    DD   *
+ F010
+ A006
+ D110
+ Z005
+ A008 E 53 10053
+ A006 E 53 10053
+ FIN
+ /*
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  F04P12
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04SP5
+ //LKED.SYSIN DD  *
+     ENTRY    A04SP5
+     NAME     A04SP5(R)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04P12
+ //LKED.SYSIN DD  *
+     ENTRY    A04P12
+     NAME     A04P12(R)
+ //*
+ //*******************************************************************
+ //* DEL/DEF FORA04.PRDT.KSDS                                        *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.PRDT.KSDS
+   DELETE FORA04.PRDT.SEQ.TRI
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.PRDT.KSDS) -
+          TRACKS(1 1) -
+          KEYS(4 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.PRDT.KSDS.DATA) -
+          ) -
+          INDEX (NAME(FORA04.PRDT.KSDS.INDEX) -
+          )
+ //**********************************************************************
+ //* TRI DU FICHIER FORA04.PRDT.SEQ SUR LE CODE PRODUIT                 *
+ //**********************************************************************
+ //STEP2    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.PRDT.SEQ,DISP=SHR
+ //SORTOUT  DD   DSN=FORA04.PRDT.SEQ.TRI,DISP=(,CATLG),
+ //         LIKE=FORA04.PRDT.SEQ
+ //SYSIN    DD   *
+   SORT FIELDS=(1,4,CH,A)
+ /*
+ //**********************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                   *
+ //**********************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   REPRO INDATASET (FORA04.PRDT.SEQ.TRI) -
+         OUTDATASET(FORA04.PRDT.KSDS)
+ //**********************************************************************
+ //* LECTURE DU KSDS                                                    *
+ //**********************************************************************
+ //STEP4    EXEC PGM=A04P12
+ //DDENT    DD   DSN=FORA04.PRDT.KSDS,DISP=SHR
+ //SYSIN    DD   *
+ D110E4158155
+ E41G
+ AAA2H9777777
+ A050O0718277
+ A011
+ FIN
+ /*
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  COMPPROG
+ //FORA04P  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*
+ //**********************************************************************
+ //*  COMPILATION DE PROGRAMME CICS                                     *
+ //**********************************************************************
+ //COBCICS  EXEC ACOBCICS,PGMT=A04DPGMT
+ //LKED.SYSIN DD  *
+     INCLUDE  SYSLIB(DFHELII)
+     ENTRY    A04DPGMT
+     NAME     A04DPGMT(R)
+ //*
+ MEMBER NAME  COMPDB2
+ //FORA04D JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //        MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //*
+ //COBBTDB EXEC ACOBBTDB,PGMB=A04JPGMD
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04JPGMD
+     NAME     A04JPGMD(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04JPGMD)   -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //STEP1    EXEC PGM=IKJEFT01,TIME=(0,5)
+ //STEPLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //         DD DSN=DB2F.SDSNEXIT,DISP=SHR
+ //         DD DSN=DB2F.RUNLIB.LOAD,DISP=SHR
+ //         DD DSN=CEE.SCEERUN,DISP=SHR
+ //SYSPRINT DD SYSOUT=*
+ //SYSTSPRT DD SYSOUT=*
+ //SYSOUT   DD SYSOUT=*
+ //SYSTSIN  DD *
+   DSN SYSTEM(DB2F)
+   RUN PROGRAM(A04JPGMD) PLAN(PLANFORA) -
+   LIBRARY('FORA99.LIB.LOAD')
+   END
+ //
+ MEMBER NAME  F04P13
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04CTDAT
+ //LKED.SYSIN DD  *
+     ENTRY    A04CTDAT
+     NAME     A04CTDAT(R)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04SP7
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04SP7
+     NAME     A04SP7(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04SP7)     -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04P13
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04P13
+     NAME     A04P13(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04P13)     -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //STEP1    EXEC PGM=IKJEFT01,TIME=(0,5)
+ //STEPLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //         DD DSN=DB2F.SDSNEXIT,DISP=SHR
+ //         DD DSN=DB2F.RUNLIB.LOAD,DISP=SHR
+ //         DD DSN=CEE.SCEERUN,DISP=SHR
+ //SYSPRINT DD SYSOUT=*
+ //SYSTSPRT DD SYSOUT=*
+ //SYSOUT   DD SYSOUT=*
+ //SYSTSIN  DD *
+   DSN SYSTEM(DB2F)
+   RUN PROGRAM(A04P13) PLAN(PLANFORA) -
+   LIBRARY('FORA99.LIB.LOAD')
+   END
+ //
+ MEMBER NAME  EMAP
+ //FORA04M  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*
+ //**********************************************************************
+ //*  COMPILATION DE MAP                                                *
+ //**********************************************************************
+ //ADFHMAPS EXEC ADFHMAPS,MAPNAME=A04EMAP
+ MEMBER NAME  DISPTEST
+ //FORA04A    JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //           MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB     DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH    EXEC ACOBBTCH,PGMB=DISPTEST
+ //LKED.SYSIN DD  *
+     ENTRY    DISPTEST
+     NAME     DISPTEST(R)
+ //*
+ //STEP1      EXEC PGM=DISPTEST
+ //SYSOUT     DD SYSOUT=*
+ MEMBER NAME  EJEUX
+ //FORA04P  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*
+ //JOBLIB   DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //**********************************************************************
+ //*  COMPILATION DE MAPS                                               *
+ //**********************************************************************
+ //ADFHMAPS EXEC ADFHMAPS,MAPNAME=A04EMAP
+ //**********************************************************************
+ //*  COMPILATION DE PROGRAMME CICS                                     *
+ //**********************************************************************
+ //COBCICS  EXEC ACOBCICS,PGMT=A04EJEUX
+ //*OPYLIB DD DSN=FORA03.LIB.COPY,DISP=SHR
+ //LKED.SYSIN DD  *
+     INCLUDE  SYSLIB(DFHELII)
+     ENTRY    A04EJEUX
+     NAME     A04EJEUX(R)
+ //*
+ //MSGUSR DD SYSOUT=*
+ MEMBER NAME  PROJET
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04PROJ
+ //LKED.SYSIN DD  *
+     ENTRY    A04PROJ
+     NAME     A04PROJ(R)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04FIND
+ //LKED.SYSIN DD  *
+     ENTRY    A04FIND
+     NAME     A04FIND(R)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04MESS
+ //LKED.SYSIN DD  *
+     ENTRY    A04MESS
+     NAME     A04MESS(R)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04MODIF
+ //LKED.SYSIN DD  *
+     ENTRY    A04MODIF
+     NAME     A04MODIF(R)
+ //*
+ //**********************************************************************
+ //* TRI DU FICHIER SEQ.ASSURES1 SUR LES MATRICULES ET ADRESSES
+ //**********************************************************************
+ //STEP1    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.SEQ.ASSURES1,DISP=SHR
+ //SORTOUT  DD   DSN=&&ASSURES2,DISP=(NEW,PASS),
+ //         LIKE=FORA04.SEQ.ASSURES1
+ //SYSIN    DD   *
+   SORT FIELDS=(1,6,CH,A,27,16,CH,D)
+ /*
+ //*******************************************************************
+ //* DEL/DEF KSDS.ASSURES3                                           *
+ //*******************************************************************
+ //STEP2    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.KSDS.ASSURES3
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.KSDS.ASSURES3) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.KSDS.ASSURES3.DATA) -
+          ) -
+          INDEX (NAME(FORA04.KSDS.ASSURES3.INDEX) -
+          )
+ /*
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                *
+ //*******************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //ASSUR2   DD   DSN=&&ASSURES2,DISP=SHR
+ //ASSUR3   DD   DSN=FORA04.KSDS.ASSURES3,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE (ASSUR2) -
+         OUTFILE(ASSUR3)
+ /*
+ //**********************************************************************
+ //* TRI DU FICHIER SEQ.FMVTST SUR LES MATRICULES ET CODE MOUVEMENT
+ //**********************************************************************
+ //STEP4    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.SEQ.FMVTS,DISP=SHR
+ //SORTOUT  DD   DSN=&&FMVTST,DISP=(NEW,PASS),
+ //         LIKE=FORA04.SEQ.FMVTS
+ //SYSIN    DD   *
+   SORT FIELDS=(1,6,CH,A,73,1,CH,A)
+ /*
+ //*******************************************************************
+ //* DEL/DEF ESDS(FMVTSE)                                            *
+ //*******************************************************************
+ //STEP5    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.ESDS.FMVTSE
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.ESDS.FMVTSE) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          NONINDEXED -
+          ) -
+          DATA (NAME(FORA04.ESDS.FMVTSE.DATA) -
+          )
+ /*
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE ESDS                                *
+ //*******************************************************************
+ //STEP6    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //FMVTST   DD   DSN=&&FMVTST,DISP=SHR
+ //FMVTSE   DD   DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE(FMVTST) -
+         OUTFILE(FMVTSE)
+ /*
+ //*******************************************************************
+ //* DEL/DEF KSDS.ASSURES4                                           *
+ //*******************************************************************
+ //STEP7    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.KSDS.ASSURES4
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.KSDS.ASSURES4) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.KSDS.ASSURES4.DATA) -
+          ) -
+          INDEX (NAME(FORA04.KSDS.ASSURES4.INDEX) -
+          )
+ /*
+ //************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.ETAT01                     *
+ //************************************************************
+ //STEP8  EXEC PGM=IEFBR14
+ //DDDEL   DD   DSN=FORA04.ETAT01,
+ //        LIKE=FORA04.SEQ.ASSURES1,
+ //        DISP=(MOD,DELETE,DELETE)
+ //************************************************************
+ //* CREATION DU FICHIER FORA04.ETAT01                        *
+ //* (PAS FORCEMENT UTILE, APPAREMMENT LE SHARE=MOD LE CREE   *
+ //* S'IL FAUT AU PREALABLE).                                 *
+ //************************************************************
+ //STEP9  EXEC PGM=IEFBR14
+ //DDNEW   DD   DSN=FORA04.ETAT01,
+ //        LIKE=FORA04.SEQ.ASSURES1,
+ //        DISP=(NEW,CATLG,DELETE)
+ //*******************************************************************
+ //* COPIE D'ASSURES 3 DANS ASSURES 4                                *
+ //*******************************************************************
+ //STEP10   EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   REPRO INDATASET (FORA04.KSDS.ASSURES3) -
+         OUTDATASET(FORA04.KSDS.ASSURES4)
+ /*
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DES FICHIERS CLIENT, ECRITURE                 *
+ //**********************************************************************
+ //STEP11   EXEC PGM=A04PROJ,PARM=&SYSUID
+ //DDENT1   DD DSN=FORA04.KSDS.ASSURES3,DISP=SHR
+ //DDENT2   DD DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //DDSOR1   DD DSN=FORA04.KSDS.ASSURES4,DISP=SHR
+ //DDSOR2   DD DSN=FORA04.ETAT01,
+ //         LIKE=FORA04.SEQ.ASSURES1,
+ //         DISP=MOD
+ //SYSOUT   DD SYSOUT=*
+ MEMBER NAME  BROUILL
+ //FORA04A    JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //           MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB     DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH    EXEC ACOBBTCH,PGMB=A04PRSQL
+ //LKED.SYSIN DD  *
+     ENTRY    A04PRSQL
+     NAME     A04PRSQL(R)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04FISQL
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04FISQL
+     NAME     A04FISQL(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04FISQL)   -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04MESS
+ //LKED.SYSIN DD  *
+     ENTRY    A04MESS
+     NAME     A04MESS(R)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04MOSQL
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04MOSQL
+     NAME     A04MOSQL(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04MOSQL)   -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //**********************************************************************
+ //* TRI DU FICHIER SEQ.FMVTST SUR LES MATRICULES ET CODE MOUVEMENT
+ //**********************************************************************
+ //STEP1    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.SEQ.FMVTS,DISP=SHR
+ //SORTOUT  DD   DSN=&&FMVTST,DISP=(NEW,PASS),
+ //         LIKE=FORA04.SEQ.FMVTS
+ //SYSIN    DD   *
+   SORT FIELDS=(1,6,CH,A,73,1,CH,A)
+ /*
+ //*******************************************************************
+ //* DEL/DEF ESDS(FMVTSE)                                            *
+ //*******************************************************************
+ //STEP2    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.ESDS.FMVTSE
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.ESDS.FMVTSE) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          NONINDEXED -
+          ) -
+          DATA (NAME(FORA04.ESDS.FMVTSE.DATA) -
+          )
+ /*
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE ESDS                                *
+ //*******************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //FMVTST   DD   DSN=&&FMVTST,DISP=SHR
+ //FMVTSE   DD   DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE(FMVTST) -
+         OUTFILE(FMVTSE)
+ /*
+ //*******************************************************************
+ //* DEL/DEF KSDS.ASSURES4                                           *
+ //*******************************************************************
+ //STEP4    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.KSDS.ASSURES4
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.KSDS.ASSURES4) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.KSDS.ASSURES4.DATA) -
+          ) -
+          INDEX (NAME(FORA04.KSDS.ASSURES4.INDEX) -
+          )
+ /*
+ //************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.ETAT01                     *
+ //************************************************************
+ //STEP5   EXEC PGM=IEFBR14
+ //DDDEL   DD   DSN=FORA04.ETAT01,
+ //        LIKE=FORA04.SEQ.FMVTS,
+ //        DISP=(MOD,DELETE,DELETE)
+ //************************************************************
+ //* CREATION DU FICHIER FORA04.ETAT01                        *
+ //* (PAS FORCEMENT UTILE, APPAREMMENT LE SHARE=MOD LE CREE   *
+ //* S'IL FAUT AU PREALABLE).                                 *
+ //************************************************************
+ //STEP6   EXEC PGM=IEFBR14
+ //DDNEW   DD   DSN=FORA04.ETAT01,
+ //        LIKE=FORA04.SEQ.FMVTS,
+ //        DISP=(NEW,CATLG,DELETE)
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DES FICHIERS CLIENT, ECRITURE                 *
+ //**********************************************************************
+ //STEP7    EXEC PGM=IKJEFT01,TIME=(0,5)
+ //STEPLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //         DD DSN=DB2F.SDSNEXIT,DISP=SHR
+ //         DD DSN=DB2F.RUNLIB.LOAD,DISP=SHR
+ //         DD DSN=CEE.SCEERUN,DISP=SHR
+ //SYSPRINT DD SYSOUT=*
+ //SYSTSPRT DD SYSOUT=*
+ //DDMVT    DD DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //DDETAT   DD DSN=FORA04.ETAT01,
+ //         LIKE=FORA04.SEQ.FMVTS,
+ //         DISP=MOD
+ //SYSOUT   DD SYSOUT=*
+ //SYSTSIN  DD *
+   DSN SYSTEM(DB2F)
+   RUN PROGRAM(A04PRSQL) PLAN(PLANFORA) -
+   PARMS('FORA04') -
+   LIBRARY('FORA99.LIB.LOAD')
+   END
+ //
+ MEMBER NAME  LISTLIB
+ //* LISTE DES MEMBRES D'UNE LIBRAIRIE
+ //*
+ //S1       EXEC PGM=LISTLIB,PARM='FORA04.LIB.SOURCE'
+ //STEPLIB  DD  DSN=FORA99.LIB.LOAD,DISP=SHR
+ //SYSOUT   DD  SYSOUT=A
+ //LIB      DD  DSN=FORA04.LIB.SOURCE,DISP=SHR,
+ //           DCB=(RECFM=U,BLKSIZE=256,LRECL=256)
+ //FJCL     DD  SYSOUT=(A,INTRDR)
+ MEMBER NAME  PROJSQL
+ //FORA04A    JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //           MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB     DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //COBBTCH    EXEC ACOBBTCH,PGMB=A04PRSQL
+ //LKED.SYSIN DD  *
+     ENTRY    A04PRSQL
+     NAME     A04PRSQL(R)
+ //*
+ //COBBTCH    EXEC ACOBBTCH,PGMB=A04RECID
+ //LKED.SYSIN DD  *
+     ENTRY    A04RECID
+     NAME     A04RECID(R)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04FISQL
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04FISQL
+     NAME     A04FISQL(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04FISQL)   -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //COBBTCH  EXEC ACOBBTCH,PGMB=A04MESS
+ //LKED.SYSIN DD  *
+     ENTRY    A04MESS
+     NAME     A04MESS(R)
+ //*
+ //COBBTDB  EXEC ACOBBTDB,PGMB=A04MOSQL
+ //LKED.SYSIN DD  *
+     INCLUDE SYSLIB(DSNELI)
+     ENTRY    A04MOSQL
+     NAME     A04MOSQL(R)
+ //*
+ //BIND.SYSIN DD  *
+    DSN SYSTEM(DB2F)
+    BIND PACKAGE(COLLFORA)  MEMBER(A04MOSQL)   -
+    ACTION  (REPLACE)       VALIDATE (BIND)    -
+    QUALIFIER(FORA04)       ISOLATION(CS)
+ //*
+ //**********************************************************************
+ //* TRI DU FICHIER SEQ.FMVTST SUR LES MATRICULES ET CODE MOUVEMENT
+ //**********************************************************************
+ //STEP1    EXEC PGM=SORT
+ //SYSOUT   DD   SYSOUT=*
+ //SORTIN   DD   DSN=FORA04.SEQ.FMVTS,DISP=SHR
+ //SORTOUT  DD   DSN=&&FMVTST,DISP=(NEW,PASS),
+ //         LIKE=FORA04.SEQ.FMVTS
+ //SYSIN    DD   *
+   SORT FIELDS=(1,6,CH,A,73,1,CH,A)
+ /*
+ //*******************************************************************
+ //* DEL/DEF ESDS(FMVTSE)                                            *
+ //*******************************************************************
+ //STEP2    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.ESDS.FMVTSE
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.ESDS.FMVTSE) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          NONINDEXED -
+          ) -
+          DATA (NAME(FORA04.ESDS.FMVTSE.DATA) -
+          )
+ /*
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE ESDS                                *
+ //*******************************************************************
+ //STEP3    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //FMVTST   DD   DSN=&&FMVTST,DISP=(OLD,PASS)
+ //FMVTSE   DD   DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE(FMVTST) -
+         OUTFILE(FMVTSE)
+ /*
+ //*******************************************************************
+ //* DEL/DEF KSDS.ASSURES4                                           *
+ //*******************************************************************
+ //STEP4    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.KSDS.ASSURES4
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.KSDS.ASSURES4) -
+          TRACKS(1 1) -
+          KEYS(6 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.KSDS.ASSURES4.DATA) -
+          ) -
+          INDEX (NAME(FORA04.KSDS.ASSURES4.INDEX) -
+          )
+ /*
+ //************************************************************
+ //* SUPPRESSION DU FICHIER FORA04.ETAT01                     *
+ //************************************************************
+ //STEP5   EXEC PGM=IEFBR14
+ //DDDEL   DD   DSN=FORA04.ETAT01,
+ //        LIKE=FORA04.SEQ.FMVTS,
+ //        DISP=(MOD,DELETE,DELETE)
+ //************************************************************
+ //* CREATION DU FICHIER FORA04.ETAT01                        *
+ //* (PAS FORCEMENT UTILE, APPAREMMENT LE SHARE=MOD LE CREE   *
+ //* S'IL FAUT AU PREALABLE).                                 *
+ //************************************************************
+ //STEP6    EXEC PGM=A04RECID,PARM=&SYSUID
+ //RECID    DD   DSN=&&USERID,DISP=(NEW,PASS),
+ //         LIKE=FORA04.SEQ.FMVTS
+ //SYSOUT   DD SYSOUT=*
+ //**********************************************************************
+ //* LECTURE SEQUENTIELLE DES FICHIERS CLIENT, ECRITURE                 *
+ //**********************************************************************
+ //STEP7    EXEC PGM=IKJEFT01,TIME=(0,5)
+ //STEPLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //         DD DSN=DB2F.SDSNEXIT,DISP=SHR
+ //         DD DSN=DB2F.RUNLIB.LOAD,DISP=SHR
+ //         DD DSN=CEE.SCEERUN,DISP=SHR
+ //SYSPRINT DD SYSOUT=*
+ //SYSTSPRT DD SYSOUT=*
+ //DDID     DD DSN=&&USERID,DISP=(OLD,PASS)
+ //DDMVT    DD DSN=FORA04.ESDS.FMVTSE,DISP=SHR
+ //DDETAT   DD DSN=FORA04.ETAT01,
+ //         LIKE=FORA04.SEQ.FMVTS,
+ //         DISP=MOD
+ //SYSOUT   DD SYSOUT=*
+ //SYSTSIN  DD *
+   DSN SYSTEM(DB2F)
+   RUN PROGRAM(A04PRSQL) PLAN(PLANFORA) -
+   LIBRARY('FORA99.LIB.LOAD')
+   END
+ /*
+ //
+ MEMBER NAME  LISTLIB2
+ //FORA04L JOB CLASS=A,MSGCLASS=A,NOTIFY=&SYSUID
+ //*
+ //* LISTE DES MEMBRES D'UNE LIBRAIRIE
+ //*
+ //S1       EXEC PGM=LISTLIB,PARM='FORA04.LIB.JCL'
+ //STEPLIB  DD  DSN=FORA99.LIB.LOAD,DISP=SHR
+ //SYSOUT   DD  SYSOUT=A
+ //LIB      DD  DSN=FORA04.LIB.JCL,DISP=SHR,
+ //           DCB=(RECFM=U,BLKSIZE=256,LRECL=256)
+ //FJCL     DD  SYSOUT=(A,INTRDR)
+ MEMBER NAME  COMPIL
+ //FORA04A JOB ACCTFORA,'04',CLASS=A,MSGCLASS=A,NOTIFY=&SYSUID
+ //COBBTCH EXEC ACOBBTCH,PGMB=LISTLIB,GRPEHLQ='FORA99'
+ //SYSLINK DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //SYSLIB  DD DSN=FORA04.LIB.COPY,DISP=SHR
+ //LKED.SYSIN DD *
+   ENTRY LISTLIB
+   NAME  LISTLIB(R)
+ //SYSPRINT DD SYSOUT=*
+ //SYSOUT DD SYSOUT=*
+ MEMBER NAME  CREAKSDS
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //*******************************************************************
+ //* DEL/DEF KSDS.FPSWD                                              *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //SYSIN    DD   *
+   DELETE FORA04.KSDS.FPSWD
+   IF LASTCC <= 8 THEN SET MAXCC = 0
+   DEFINE CLUSTER (NAME(FORA04.KSDS.FPSWD) -
+          TRACKS(1 1) -
+          KEYS(8 0) -
+          RECORDSIZE(80 80) -
+          SHAREOPTIONS(2 3) -
+          INDEXED -
+          ) -
+          DATA (NAME(FORA04.KSDS.FPSWD.DATA) -
+          ) -
+          INDEX (NAME(FORA04.KSDS.FPSWD.INDEX) -
+          )
+ /*
+ MEMBER NAME  COMPMAP
+ //FORA04M  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID,RESTART=*
+ //**********************************************************************
+ //*  COMPILATION DE MAP                                                *
+ //**********************************************************************
+ //ADFHMAPS EXEC ADFHMAPS,MAPNAME=A040CI7
+ MEMBER NAME  CREASEQ
+ //FORA04A JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,5),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //************************************************************
+ //* CREATION DU FICHIER FORA04.SEQ.FPSWD
+ //************************************************************
+ //STEP1   EXEC PGM=IEFBR14
+ //CREASEQ DD   DSN=FORA04.SEQ.FPSWD,DISP=(NEW,CATLG,DELETE),
+ //        DSORG=PS,RECFM=FB,LRECL=80,BLKSIZE=16000,
+ //        SPACE=(TRK,(1,1))
+ MEMBER NAME  REPRO
+ //FORA04A  JOB ACCTFORA,'FORA04',CLASS=A,TIME=(,10),COND=(4,LT),
+ //         MSGCLASS=A,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+ //JOBLIB  DD DSN=FORA99.LIB.LOAD,DISP=SHR
+ //*******************************************************************
+ //* COPIE DU SEQUENTIEL DANS LE KSDS                                *
+ //*******************************************************************
+ //STEP1    EXEC PGM=IDCAMS
+ //SYSPRINT DD   SYSOUT=*
+ //USERSEQ  DD   DSN=FORA04.SEQ.FPSWD,DISP=SHR
+ //USERKSDS DD   DSN=FORA04.KSDS.FPSWD,DISP=SHR
+ //SYSIN    DD   *
+   REPRO INFILE (USERSEQ) -
+         OUTFILE(USERKSDS)
+ /*
+ /*

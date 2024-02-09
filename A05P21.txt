@@ -1,0 +1,253 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P21.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FKSDS   ASSIGN TO DDINPUT
+             ORGANIZATION IS INDEXED
+             RECORD KEY IS MAT-X3 OF ENR-ASS
+             ACCESS MODE IS RANDOM
+             FILE STATUS FS.
+           SELECT FMVTSE  ASSIGN TO AS-DDINPUT2
+             FILE STATUS FS2.
+           SELECT FKSDSOUT ASSIGN TO DDINPUT3
+             ORGANIZATION IS INDEXED
+             RECORD KEY IS  MAT-X3 OF ENR-ASS-OUT
+             ACCESS MODE IS RANDOM
+             FILE STATUS FS3.
+           SELECT FETATAN ASSIGN TO DDINPUT4
+              FILE STATUS FS4.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FKSDS.
+       01 ENR-ASS.
+           COPY WASSURES.
+       FD FKSDSOUT.
+       01 ENR-ASS-OUT.
+           COPY WASSURES.
+       FD FMVTSE
+           LABEL RECORD OMITTED
+           DATA RECORD ENR-ESDS.
+       01 ENR-ESDS PIC X(80).
+       FD FETATAN.
+       01 ENR-ETATAN  PIC X(132).
+       WORKING-STORAGE SECTION.
+       COPY WFMVTS.
+       COPY WMESSAGE.
+       01  REDEFINES TABLE-MESSAGE.
+           05 P-ERR PIC X(60) OCCURS 18.
+       01 FS                 PIC 99 VALUE ZEROS.
+       01 FS2                PIC 99 VALUE ZEROS.
+       01 FS3                PIC 99 VALUE ZEROS.
+       01 FS4                PIC 99 VALUE ZEROS.
+       01 ENR-CNTR           PIC X.
+           88 ENR-INEX       VALUE 'I'.
+           88 ENR-EX         VALUE 'E'.
+       01                    PIC X.
+           88 FIN-FILE       VALUE SPACES.
+       01                    PIC X.
+           88 CNTR-OK        VALUE 'O'.
+           88 CNTR-ERR       VALUE 'E'.
+       01 CNT-MVT            PIC 99 VALUE ZEROS.
+       01 CNT-CRT            PIC 99 VALUE ZEROS.
+       01 CNT-SPR            PIC 99 VALUE ZEROS.
+       01 CNT-MDF            PIC 99 VALUE ZEROS.
+       01 CNT-CREES          PIC 99 VALUE ZEROS.
+       01 CNT-ERR-ALL        PIC 99 VALUE ZEROS.
+       01 CNT-ERR-MVT        PIC 99 VALUE ZEROS.
+       01 CNT-ERR-CRT        PIC 99 VALUE ZEROS.
+       01 CNT-ERR-SPR        PIC 99 VALUE ZEROS.
+       01 CNT-ERR-MDF        PIC 99 VALUE ZEROS.
+       01 CNT-ASS-LU         PIC 99 VALUE ZEROS.
+       01 Z2-SP21.
+           05 CODE-ERR       PIC 99 VALUE ZEROS.
+           05 ENR-CODE       PIC X(6).
+           05 MSG-ERR        PIC X(132).
+       01 A05SP21            PIC X(8) VALUE 'A05SP21'.
+       01 WS-DATEJ           PIC X(8).
+       01 DATEJO             PIC X(29).
+
+       PROCEDURE DIVISION.
+
+           PERFORM DEBUT
+           PERFORM LECTURE
+
+           PERFORM UNTIL FIN-FILE
+               PERFORM SEARCH-ENR
+               PERFORM CNTR-ERROR
+               IF CNTR-OK
+                   PERFORM MISEAJOUR
+               ELSE
+                   PERFORM ETAT-ANO
+               END-IF
+               PERFORM LECTURE
+           END-PERFORM
+
+           PERFORM STATS
+           PERFORM FIN
+           STOP RUN.
+
+       DEBUT.
+           OPEN INPUT FKSDS
+           IF FS NOT = ZEROS
+                DISPLAY 'ERROR OPEN FILE ASSURE'
+                STOP RUN
+           END-IF.
+           OPEN INPUT FMVTSE
+           IF FS2 NOT = ZEROS
+                DISPLAY 'ERROR OPEN FILE MVT'
+                STOP RUN
+           END-IF.
+           OPEN I-O   FKSDSOUT
+           IF FS3 NOT = ZEROS
+                DISPLAY 'ERROR OPEN FILE ASSURE OUTPUT'
+                STOP RUN
+           END-IF
+           OPEN OUTPUT FETATAN
+           IF FS  NOT = ZEROS
+                DISPLAY 'ERROR OPEN FILE ETAT-ANO'
+                STOP RUN
+           END-IF.
+           MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+           STRING 'MISE A JOUR DU :   ' DELIMITED BY SIZE
+                  WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                  '/'              DELIMITED BY SIZE
+                  WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                  '/'              DELIMITED BY SIZE
+                  WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                  INTO DATEJO
+           DISPLAY DATEJO
+           DISPLAY 'USER           :   FORA05'
+           DISPLAY SPACES
+           DISPLAY '         ETAT DES ANOMALIES'
+           DISPLAY SPACES
+           MOVE  DATEJO                        TO ENR-ETATAN
+           WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+           MOVE  'USER           :   FORA05'   TO ENR-ETATAN
+           WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+           MOVE  SPACES                        TO ENR-ETATAN
+           WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+           MOVE  '         ETAT DES ANOMALIES' TO  ENR-ETATAN
+           WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+           MOVE  SPACES                        TO ENR-ETATAN
+           WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+           .
+
+       LECTURE.
+           READ FMVTSE INTO W-FMVTSE
+                AT END  SET FIN-FILE TO TRUE
+                NOT END ADD 1 TO CNT-MVT
+           END-READ
+           SET CNTR-OK  TO TRUE
+           .
+
+       SEARCH-ENR.
+           MOVE SPACES TO ENR-CNTR
+           MOVE F-MAT  TO MAT-X3 OF ENR-ASS
+           READ FKSDS
+                 INVALID KEY SET ENR-INEX TO TRUE
+                 NOT INVALID KEY
+                     ADD 1 TO CNT-ASS-LU
+                     SET ENR-EX TO TRUE
+           END-READ
+           .
+
+       CNTR-ERROR.
+           MOVE F-MAT TO ENR-CODE
+           PERFORM CNTR-MVT
+           PERFORM CNTR-CREATION
+           PERFORM CNTR-DELETE
+           PERFORM CNTR-MODIF
+           .
+
+       CNTR-MVT.
+           IF F-CODE NOT = 'C' AND 'M' AND 'S'
+               ADD  1  TO CNT-ERR-MVT
+               SET CNTR-ERR TO TRUE
+               MOVE 1  TO CODE-ERR
+           END-IF
+           .
+
+       CNTR-CREATION.
+           IF F-CODE = 'C' AND ENR-EX
+               ADD  1  TO CNT-ERR-CRT
+               SET CNTR-ERR TO TRUE
+               MOVE 2  TO CODE-ERR
+           END-IF
+           .
+
+       CNTR-DELETE.
+           IF F-CODE = 'S' AND ENR-INEX
+               ADD  1  TO CNT-ERR-SPR
+               SET CNTR-ERR TO TRUE
+               MOVE 4  TO CODE-ERR
+           END-IF
+           .
+
+       CNTR-MODIF.
+           IF F-CODE = 'M' AND ENR-INEX
+               ADD  1  TO CNT-ERR-MDF
+               SET CNTR-ERR TO TRUE
+               MOVE 3  TO CODE-ERR
+           END-IF
+           .
+
+       MISEAJOUR.
+           MOVE SPACES     TO ENR-ASS-OUT
+           MOVE F-MAT      TO MAT-X3     OF ENR-ASS-OUT
+           MOVE F-NOM-PRE  TO NOM-PRE-A3 OF ENR-ASS-OUT
+           MOVE F-RUE      TO RUE-A3     OF ENR-ASS-OUT
+           MOVE F-CP       TO CP-A3      OF ENR-ASS-OUT
+           MOVE F-VILLE    TO VILLE-A3   OF ENR-ASS-OUT
+           MOVE F-CODE     TO TYPE-V-A3  OF ENR-ASS-OUT
+           MOVE F-PRIME    TO PRIME-A3   OF ENR-ASS-OUT
+           MOVE F-BM       TO BM-A3      OF ENR-ASS-OUT
+           MOVE F-TAUX     TO TAUX-A3    OF ENR-ASS-OUT
+
+           EVALUATE F-CODE
+               WHEN 'C'
+                     WRITE   ENR-ASS-OUT
+                     ADD 1 TO CNT-CRT
+               WHEN 'S'
+                     DELETE  FKSDSOUT
+                     ADD 1 TO CNT-SPR
+               WHEN 'M'
+                     REWRITE ENR-ASS-OUT
+                     ADD 1 TO CNT-MDF
+           END-EVALUATE
+           .
+
+       ETAT-ANO.
+            CALL A05SP21 USING Z2-SP21
+            MOVE MSG-ERR TO ENR-ETATAN
+            WRITE ENR-ETATAN AFTER  ADVANCING 1 LINE
+           .
+
+       STATS.
+           MOVE SPACES TO  ENR-CODE
+           DISPLAY SPACES
+           DISPLAY '            STATISTIQUES'
+           DISPLAY SPACES
+           COMPUTE CNT-CREES = CNT-ASS-LU + CNT-CRT - CNT-SPR
+           DISPLAY P-ERR(5)  CNT-ASS-LU
+           DISPLAY P-ERR(6)  CNT-MVT
+           DISPLAY P-ERR(18) CNT-CRT
+           DISPLAY P-ERR(8)  CNT-CREES
+           DISPLAY P-ERR(9)  CNT-MDF
+           DISPLAY P-ERR(10) CNT-SPR
+           DISPLAY SPACES
+           COMPUTE CNT-ERR-ALL = CNT-ERR-MVT + CNT-ERR-CRT +
+                                 CNT-ERR-MDF + CNT-ERR-SPR
+           DISPLAY P-ERR(7)   CNT-ERR-ALL
+           DISPLAY P-ERR(11)  CNT-ERR-MVT
+           DISPLAY P-ERR(12)  CNT-ERR-CRT
+           DISPLAY P-ERR(13)  CNT-ERR-MDF
+           DISPLAY P-ERR(14)  CNT-ERR-SPR
+           .
+       FIN.
+           CLOSE FKSDS
+           CLOSE FKSDSOUT
+           CLOSE FMVTSE
+           CLOSE FETATAN
+           .

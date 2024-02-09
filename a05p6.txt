@@ -1,0 +1,97 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P6
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 Z1      PIC 9   VALUE 5.
+       01 Z2      PIC 9V9 VALUE 3,4.
+       01 Z3      PIC S999V99    VALUE -11,64.
+       01 Z4      PIC S9(9)V9(9) VALUE ZEROES.
+       01 Z5      PIC S9(9)V9 VALUE ZEROES.
+       01 Z4-FORM PIC +(9),+(9).
+       01 Z5-FORM PIC +(9),9.
+       01 ZACC.
+           05 ZA      PIC X VALUE 'A'.
+           05 ZB      PIC X VALUE 'B'.
+           05 ZC      PIC X VALUE 'C'.
+       01 ZACC-2.
+           05 ZD      PIC X.
+           05 ZE      PIC X.
+           05 ZF      PIC X.
+       PROCEDURE DIVISION.
+      *******
+           ADD Z1 Z2 Z3 5 TO Z4
+           MOVE Z4 TO Z4-FORM
+           DISPLAY 'RESULT     - ' Z4-FORM
+           MOVE Z4 TO Z5-FORM
+           DISPLAY 'UNROUNDED  - ' Z5-FORM
+           MOVE 0 TO Z4
+           ADD Z1 Z2 Z3 5 TO Z5 ROUNDED
+           MOVE Z5 TO Z5-FORM
+           DISPLAY 'ROUNDED Z5 - ' Z5-FORM
+      *******
+           COMPUTE Z4 = Z1 + Z2 +  Z3 + 5
+           MOVE Z4 TO Z4-FORM
+           DISPLAY Z4-FORM
+      *******
+           SUBTRACT Z3 FROM Z4
+           MOVE Z4 TO Z4-FORM
+           DISPLAY Z4-FORM
+      *******
+           MULTIPLY -1 BY Z4
+           MOVE Z4 TO Z4-FORM
+           DISPLAY Z4-FORM
+      *******
+           DISPLAY ZA ' ' ZB ' ' ZC
+           PERFORM COND.
+           MOVE 'A' TO ZB
+           DISPLAY ZA ' ' ZB ' ' ZC
+           PERFORM COND.
+           MOVE 'B' TO ZA
+           DISPLAY ZA ' ' ZB ' ' ZC
+           PERFORM COND.
+      ********************
+           DISPLAY SPACES
+           ACCEPT ZACC
+           PERFORM UNTIL ZACC = 'FIN'
+               DISPLAY ZACC
+               PERFORM COND
+               ACCEPT ZACC
+           END-PERFORM.
+      ***********************
+           DISPLAY SPACES
+           ACCEPT ZACC-2
+           PERFORM UNTIL ZACC-2 = 'FIN'
+               PERFORM COND-EV
+               ACCEPT ZACC-2
+           END-PERFORM.
+           STOP RUN.
+      ***********************
+       COND.
+           IF ZA = 'A'  AND ZB = 'B' AND ZC = 'C'
+               DISPLAY 'AFF1'
+           ELSE
+               IF NOT ZA = 'A'  OR ZB = 'B'
+                   DISPLAY 'AFF2'
+               ELSE
+                   DISPLAY 'RIEN'
+               END-IF
+           END-IF.
+       COND-EV.
+           EVALUATE ZD
+               WHEN 'D'           DISPLAY 'TDTD'
+               WHEN 'E' WHEN 'F'  DISPLAY 'TDTE'
+               WHEN OTHER         DISPLAY 'AUCUN'
+           END-EVALUATE.
+           EVALUATE ZE ALSO ZF
+               WHEN 'E' ALSO 'F'  DISPLAY 'TDTF'
+               WHEN 'F' ALSO 'E'  DISPLAY 'TDTE'
+               WHEN OTHER         DISPLAY 'AUCUN'
+           END-EVALUATE.
+           EVALUATE TRUE
+               WHEN ZE > ZF DISPLAY 'TDTX'
+               WHEN ZE NOT = 'A'  DISPLAY 'TDTY'
+           END-EVALUATE.

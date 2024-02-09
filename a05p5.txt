@@ -1,0 +1,81 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P5.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 V1 PIC X(40) VALUE 'IL ETAIT UNE FOIS UN MARCHAND DE FOIES'.
+       01 DECMP REDEFINES V1.
+           05 STR PIC X(8) OCCURS 5.
+       01 V2 PIC X(40).
+       01 COUNTSPACES PIC 99 VALUE ZERO.
+       01 CNT         PIC 9 VALUE 1.
+       01 I           PIC 99.
+       01 I-CH        PIC 9.
+       01 ISNUMBER    PIC X.
+       01 V3          PIC X(10) VALUE 'ARTHUR'.
+       01 V4          PIC X(10) VALUE 'RIMBAUD'.
+       01 V6          PIC X(10) VALUE 'RIMBAUDTR'.
+       01 V5          PIC X(35).
+       01 V7          PIC X(24) VALUE 'AAAAA;BBBBB;CCCCC;DDDDD;'.
+       01 TAB-V7.
+            05 ROW-V7 PIC X(5) OCCURS 4.
+       PROCEDURE DIVISION.
+      *****
+           DISPLAY V1
+           INSPECT V1 TALLYING COUNTSPACES FOR ALL SPACES
+           DISPLAY 'TOTAL SPACES - ' COUNTSPACES
+           MOVE V1 TO V2
+           INSPECT V2 REPLACING ALL 'FOI' BY 'OIF'
+           DISPLAY 'REPLACING 1  - ' V2
+           MOVE V1 TO V2
+           INSPECT V2 REPLACING FIRST ' ' BY '*'
+           DISPLAY 'REPLACING 2  - ' V2
+      **** DISPLAY 'DECOMPOSER V1- ' V1-STR(2)
+
+           PERFORM UNTIL CNT > 5
+              MOVE 0 TO COUNTSPACES
+              INSPECT STR(CNT) TALLYING COUNTSPACES FOR LEADING SPACES
+              DISPLAY 'POSTE - ' CNT ' LEADING SPACES - ' COUNTSPACES
+              ADD 1 TO CNT
+           END-PERFORM
+           MOVE V1 TO V2
+           INSPECT V2 CONVERTING 'AEIOUY' TO '123456'
+           DISPLAY 'CONVERTING   - ' V2
+      *****************
+           MOVE 1 TO CNT
+           PERFORM UNTIL CNT > 5
+              MOVE 'F' TO ISNUMBER
+              INSPECT STR(CNT) CONVERTING 'AEIOUY' TO '123456'
+              PERFORM VARYING I FROM 0 BY 1 UNTIL I > 9
+                 MOVE 0 TO COUNTSPACES
+                 MOVE I TO I-CH
+                 INSPECT STR(CNT) TALLYING COUNTSPACES FOR ALL I-CH
+      *         DISPLAY STR(CNT) ' - ' I-CH ' - ' COUNTSPACES
+                 IF NOT COUNTSPACES = 0
+                    MOVE 'T' TO ISNUMBER
+                 END-IF
+               END-PERFORM
+               IF ISNUMBER = 'T'
+                    DISPLAY 'POSTE - ' STR(CNT) ' - AVEC CHIFFRES'
+               END-IF
+               ADD 1 TO CNT
+           END-PERFORM
+      *  STRING ++
+           STRING V3   DELIMITED BY SPACES
+                  ' '  DELIMITED BY SIZE
+                  V4   DELIMITED BY SPACES
+                  ' '  DELIMITED BY SIZE
+                  V6   DELIMITED BY SIZE
+             INTO V5
+           DISPLAY SPACES
+           DISPLAY V5
+      *  STRING --
+           MOVE 1 TO I
+           PERFORM VARYING CNT FROM 1 BY 1 UNTIL CNT > 4
+              UNSTRING V7 DELIMITED BY ALL ';' INTO ROW-V7(CNT)
+                 WITH POINTER I
+              END-UNSTRING
+              DISPLAY 'POSTE ' CNT ' - ' ROW-V7(CNT)
+           END-PERFORM
+           DISPLAY SPACES
+      *    DISPLAY TAB-V7
+           STOP RUN.

@@ -1,0 +1,188 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A991PGMT.
+      ******************************************************************
+      *       MODULE DE CONTROLE ET FORMATAGE D'UN NOMBRE EN CICS      *
+      ******************************************************************
+      * ZONE DE COMMUNICATION                                          *
+      *01  ZNUM-COM.                                                   *
+      *    05 ZNUM-SIGNE          PIC X(01).                           *
+      *    05 ZNUM-NOMBRE-X       PIC X(20).                           *
+      *    05 ZNUM-CODRET         PIC X(01).                           *
+      *    05 ZNUM-NOMBRE-9       PIC S9(9)V9(9).                      *
+      ******************************************************************
+      *-----> RENSEIGNER LE SIGNE DANS ZNUM-SIGNE (BLANC SI AUCUN)     *
+      *       RENSEIGNER LE NOMBRE A CONTROLER AU FORMAT ALPHA DANS    *
+      *       ZNUM-NOMBRE-X                                            *
+      *-----> RECUPERER LE NOMBRE AU FORMAT NUM DANS ZNUM-NOMBRE-9     *
+      ******************************************************************
+      * EXEMPLE :                                                      *
+      *    INITIALIZE ZNUM-COM                                         *
+      *    MOVE ...... TO ZNUM-NOMBRE-X                                *
+      *    EXEC CICS LINK                       OU                     *
+      *         PROGRAM('A991PGMT')      CALL 'A991PGMT'               *
+      *         COMMAREA(ZNUM-COM)            USING ZNUM-COM           *
+      *    END-EXEC                                                    *
+      *    IF ZNUM-OK                                                  *
+      *       MOVE ZNUM-NOMBRE-9 TO ...                                *
+      *    ELSE                                                        *
+      *       ...                                                      *
+      *    END-IF                                                      *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       DATA DIVISION.
+      *
+       WORKING-STORAGE SECTION.
+       01  NOMBRE-X.
+           05 CAR-X               PIC X(01) OCCURS 20.
+       01  I                      PIC 99 VALUE ZEROES.
+
+       01  PARTIE-ENTIERE-X       VALUE SPACES.
+           05 CAR-XE              PIC X(01) OCCURS 20.
+       01  J                      PIC 99 VALUE ZEROES.
+       01  J-MAX                  PIC 99 VALUE ZEROES.
+
+       01  PARTIE-DECIMALE-X      VALUE SPACES.
+           05 CAR-XD              PIC X(01) OCCURS 20.
+       01  K                      PIC 99 VALUE ZEROES.
+       01  K-MAX                  PIC 99 VALUE ZEROES.
+
+       01  NOMBRE-9-ED            PIC +(9)9,9(9) VALUE ZEROES.
+       01  NOMBRE-9               PIC S9(9)V9(9) VALUE ZEROES.
+       01  REDEFINES NOMBRE-9.
+           05 PARTIE-ENTIERE-9.
+             10 CAR-9E            PIC 9(01) OCCURS 9.
+           05 PARTIE-DECIMALE-9.
+             10 CAR-9D            PIC 9(01) OCCURS 9.
+
+       01  L                      PIC 99 VALUE ZEROES.
+       01  M                      PIC 99 VALUE ZEROES.
+
+       01  CODRET                 PIC X VALUE SPACES.
+           88 OK                  VALUE '0'.
+           88 ERREUR              VALUE '1'.
+
+       01                         PIC X VALUE SPACES.
+           88 PRESENCE-VIRGULE    VALUE '1'.
+           88 PAS-DE-VIRGULE      VALUE '0'.
+
+       01  NB-VIRGULES            PIC 99 VALUE ZEROES.
+
+      * ZONE DE COMMUNICATION
+       01  ZNUM-COM.
+           05 ZNUM-SIGNE          PIC X(01).
+              88 ZNUM-POSITIF     VALUE '+' ' '.
+              88 ZNUM-NEGATIF     VALUE '-'.
+              88 ZNUM-SIGNE-OK    VALUE '+' '-' ' '.
+           05 ZNUM-NOMBRE-X       PIC X(20).
+           05 ZNUM-CODRET         PIC X(01).
+              88 ZNUM-OK          VALUE '0'.
+              88 ZNUM-ERREUR      VALUE '1'.
+           05 ZNUM-NOMBRE-9       PIC S9(9)V9(9).
+
+       LINKAGE SECTION.
+       01  DFHCOMMAREA            PIC X(40).
+      *
+       PROCEDURE DIVISION USING DFHCOMMAREA.
+           PERFORM DEBUT
+           PERFORM TRAITEMENT
+           PERFORM FIN
+           GOBACK
+           .
+
+       DEBUT.
+      * RECUPERATION DE LA COMMAREA EN WORKING-STORAGE
+           MOVE DFHCOMMAREA   TO ZNUM-COM
+
+      * INITIALISATIONS
+           SET OK             TO TRUE
+           SET PAS-DE-VIRGULE TO TRUE
+           MOVE ZEROES        TO NB-VIRGULES I J J-MAX K L M K-MAX
+                                 NOMBRE-9 PARTIE-ENTIERE-9
+                                 PARTIE-DECIMALE-9
+           MOVE SPACES        TO PARTIE-ENTIERE-X PARTIE-DECIMALE-X
+                                 NOMBRE-X
+           .
+
+       TRAITEMENT.
+      * CONTROLE DU SIGNE
+           IF NOT ZNUM-SIGNE-OK
+              SET ERREUR TO TRUE
+              PERFORM FIN
+           END-IF
+
+      * MONTANT A ZERO
+           IF ZNUM-NOMBRE-X = SPACES
+              MOVE ZEROES TO ZNUM-NOMBRE-9
+              PERFORM FIN
+           END-IF
+
+      * REMPLACEMENT DES BLANCS DU DEBUT PAR DES ZEROS
+           MOVE ZNUM-NOMBRE-X TO NOMBRE-X
+           INSPECT NOMBRE-X REPLACING LEADING SPACES BY ZEROES
+
+      * DECOMPOSITION ENTRE PARTIE ENTIERE ET PARTIE DECIMALE
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I > 20 OR ERREUR
+            IF CAR-X(I) = ','
+               SET PRESENCE-VIRGULE TO TRUE
+               ADD 1 TO NB-VIRGULES
+            END-IF
+            IF NB-VIRGULES > 1
+               SET ERREUR TO TRUE
+            ELSE
+               IF CAR-X(I) = SPACES
+                  MOVE 20 TO I
+               ELSE
+                  IF NOT PRESENCE-VIRGULE
+                     ADD 1 TO J-MAX
+                     MOVE CAR-X(I) TO CAR-XE(J-MAX)
+                  ELSE
+                     IF CAR-X(I) NOT = ','
+                        ADD 1 TO K-MAX
+                        MOVE CAR-X(I) TO CAR-XD(K-MAX)
+                     END-IF
+                  END-IF
+               END-IF
+            END-IF
+           END-PERFORM
+
+      * CONTROLE NUMERICITE PARTIE ENTIERE ET PARTIE DECIMALE
+           IF (J-MAX > 0 AND PARTIE-ENTIERE-X  (1:J-MAX) NOT NUMERIC)
+           OR (K-MAX > 0 AND PARTIE-DECIMALE-X (1:K-MAX) NOT NUMERIC)
+              SET ERREUR TO TRUE
+               PERFORM FIN
+           END-IF
+
+      * ALIMENTATION PARTIE ENTIERE
+           MOVE 9 TO L
+           IF J-MAX > 9
+              PERFORM VARYING J FROM J-MAX BY -1 UNTIL J < (J-MAX - 9)
+               MOVE CAR-XE(J) TO CAR-9E(L)
+               SUBTRACT 1 FROM L
+              END-PERFORM
+           ELSE
+              PERFORM VARYING J FROM J-MAX BY -1 UNTIL J < 1
+               MOVE CAR-XE(J) TO CAR-9E(L)
+               SUBTRACT 1 FROM L
+              END-PERFORM
+           END-IF
+
+      * ALIMENTATION PARTIE DECIMALE
+           PERFORM VARYING K FROM 1 BY 1 UNTIL K > K-MAX
+            MOVE CAR-XD(K) TO CAR-9D(K)
+           END-PERFORM
+
+      * ALIMENTATION DU NOMBRE FORMATE ET SIGNE EN RETOUR
+           IF ZNUM-NEGATIF
+              MULTIPLY NOMBRE-9 BY -1 GIVING NOMBRE-9
+           END-IF
+           MOVE NOMBRE-9        TO ZNUM-NOMBRE-9
+           .
+
+       FIN.
+      * ALIMENTATION DE LA COMMAREA
+           MOVE CODRET          TO ZNUM-CODRET
+           MOVE ZNUM-COM        TO DFHCOMMAREA
+           .

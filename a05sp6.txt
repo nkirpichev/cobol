@@ -1,0 +1,236 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP6.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA    END-EXEC.
+           EXEC SQL INCLUDE CONTRAT  END-EXEC.
+           EXEC SQL INCLUDE ALBUM    END-EXEC.
+           EXEC SQL INCLUDE MAISOND  END-EXEC.
+           EXEC SQL INCLUDE PERSONNE END-EXEC.
+       01  CNT-STEP          PIC 9          VALUE ZEROS.
+       01  DROITS-AVG        PIC S9(3)V9(2) USAGE COMP-3.
+       01  DROITS-ED         PIC 9(3)V99.
+       01  PRCT-ED           PIC ZZ9.
+
+      * TABLE DES ERREURS
+       01  TABERR.
+           05 PIC X(55) VALUE 'ALBUM NON RENSEIGNE OU INEXISTANT'.
+           05 PIC X(55) VALUE 'CODE ALBUM ET TITRE RENSEIGNES'.
+           05 PIC X(55) VALUE 'MAISON DIST NON RENSEIGNEE OU INEX'.
+           05 PIC X(55) VALUE 'CODE MAISON ET RAISON SOCIALE RENS'.
+           05 PIC X(55) VALUE 'PERSONNE NON RENSEIGNE OU INEXISTANTE'.
+           05 PIC X(55) VALUE 'CODE PERSONNE ET IDENTITE RENSEIGNES'.
+           05 PIC X(55) VALUE 'CONTRAT DEJA EXISTANT'.
+           05 PIC X(55) VALUE 'DATE DE SIGNATURE INVALIDE'.
+           05 PIC X(55) VALUE 'FONCTION INVALIDE'.
+           05 PIC X(55) VALUE 'DROITS INVALIDES'.
+           05 PIC X(55) VALUE 'ERREUR TECHNIQUE'.
+       01  REDEFINES TABERR.
+           05 P-ERR PIC X(55) OCCURS 11.
+
+       77  SQLCODE-ED        PIC +(8)9 VALUE ZEROES.
+           COPY ZCOMDAT.
+       LINKAGE SECTION.
+           COPY ZSP7.
+
+       PROCEDURE DIVISION USING ZSP7.
+           PERFORM CONTROL-ALBUM
+           PERFORM CONTROL-MAISON
+           PERFORM CONTROL-PERSONNE
+           PERFORM CONTROL-CONTRAT
+           PERFORM CONTROL-DATECONTRACT
+           PERFORM CONTROL-FONCTION
+           PERFORM CONTROL-DROITS
+
+           PERFORM NEW-CONTRAT
+           GOBACK.
+
+       NEW-CONTRAT.
+           MOVE 0  TO ZSP7-CODRET
+           MOVE 'CREATION BIEN EFFECTUEE'  TO ZSP7-LIBERR
+           MOVE CODEA          TO CNT-CODEA
+           MOVE SIREN          TO CNT-SIREN
+           MOVE P-CODEP        TO CNT-CODEP
+           MOVE ZSP7-DATESIGN  TO CNT-DATESIGN
+           MOVE ZSP7-FONCTION  TO CNT-FONCTION
+           MOVE ZSP7-DROITS    TO CNT-DROITS
+            EXEC SQL
+                 INSERT
+                 INTO CONTRAT
+                 VALUES(:CNT-CODEA, :CNT-SIREN, :CNT-CODEP,
+                        :CNT-DROITS,
+                         DATE(TO_DATE(:CNT-DATESIGN,'YYYY.MM.DD' )),
+                         :CNT-FONCTION)
+                 END-EXEC
+            PERFORM EVALUATE-SQLCODE
+           .
+
+       CONTROL-ALBUM.
+           IF ZSP7-CODEA = SPACES AND ZSP7-TITREA  = SPACES
+                MOVE 1 TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           END-IF
+           IF ZSP7-CODEA NOT = SPACES AND
+              ZSP7-TITREA NOT = SPACES
+                MOVE 2 TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           ELSE
+                MOVE 1 TO CNT-STEP
+           END-IF
+           MOVE ZSP7-TITREA TO TITREA-TEXT
+           MOVE 30          TO TITREA-LEN
+           MOVE ZSP7-CODEA  TO CODEA
+             EXEC SQL
+               SELECT CODEA
+               INTO :CODEA
+               FROM ALBUM
+               WHERE
+                     CODEA       = :CODEA OR
+                     TITREA      = :TITREA
+             END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+
+       CONTROL-MAISON.
+           IF ZSP7-SIREN = SPACES AND ZSP7-RAISON-SOCIALE = SPACES
+                MOVE 3 TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           END-IF
+           IF ZSP7-SIREN NOT = SPACES AND
+              ZSP7-RAISON-SOCIALE NOT = SPACES
+                MOVE 4 TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           ELSE
+                MOVE 3 TO CNT-STEP
+           END-IF
+           MOVE ZSP7-SIREN          TO SIREN
+           MOVE ZSP7-RAISON-SOCIALE TO RAISON-SOCIALE
+             EXEC SQL
+               SELECT SIREN
+               INTO :SIREN
+               FROM MAISON_DIST
+               WHERE
+                     SIREN          = :SIREN OR
+                     RAISON_SOCIALE = :RAISON-SOCIALE
+             END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+       CONTROL-PERSONNE.
+           IF ZSP7-CODEP = SPACES AND ZSP7-IDENTITE = SPACES
+                MOVE 5  TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           END-IF
+           IF ZSP7-CODEP NOT = SPACES AND
+              ZSP7-IDENTITE NOT = SPACES
+                MOVE 6 TO ZSP7-CODRET
+                PERFORM GOBACK-ERROR
+           ELSE
+                MOVE 5 TO CNT-STEP
+           END-IF
+           MOVE ZSP7-CODEP          TO P-CODEP
+           MOVE ZSP7-IDENTITE       TO IDENTITE-TEXT
+           MOVE 25                  TO IDENTITE-LEN
+             EXEC SQL
+               SELECT CODEP
+               INTO :P-CODEP
+               FROM PERSONNE
+               WHERE
+                     CODEP          = :P-CODEP OR
+                     IDENTITE       = :IDENTITE
+             END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+
+       CONTROL-DATECONTRACT.
+           INITIALIZE ZCOM
+           MOVE ZSP7-DATESIGN TO ZDATE
+           CALL 'A99CTDAT' USING ZCOM
+           IF ZCDRET-KO
+                 MOVE 8 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+           END-IF.
+
+       CONTROL-FONCTION.
+           IF ZSP7-FONCTION NOT = 'I' AND 'P' AND 'C' AND 'D'
+              OR ZSP7-FONCTION = SPACES
+                 MOVE 9 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+           END-IF.
+
+       CONTROL-DROITS.
+           IF ZSP7-DROITS NOT NUMERIC OR ZSP7-DROITS = 0
+                 MOVE 10 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+           END-IF
+           MOVE P-CODEP             TO CNT-CODEP
+           MOVE ZSP7-FONCTION       TO CNT-FONCTION
+           EXEC SQL
+             SELECT DISTINCT IFNULL((SELECT AVG(DROITS)
+                  FROM CONTRAT
+                  WHERE CODEP = :CNT-CODEP AND
+                        FONCTION = :CNT-FONCTION) ,
+                   (SELECT AVG(DROITS)
+                    FROM CONTRAT
+                    WHERE FONCTION = :CNT-FONCTION))
+                  INTO :DROITS-AVG
+                  FROM CONTRAT
+           END-EXEC
+      *    MOVE DROITS-AVG TO DROITS-ED
+           COMPUTE  DROITS-ED = (DROITS-AVG - ZSP7-DROITS) / DROITS-AVG
+      *    COMPUTE  DROITS-ED =  ABS(DROITS-ED)
+           IF  DROITS-ED > 0.1
+                 MOVE 10 TO ZSP7-CODRET
+                 COMPUTE PRCT-ED =  DROITS-ED * 100
+                 DISPLAY  ZSP7-DROITS ' > ' DROITS-AVG ', ' PRCT-ED '%'
+                 PERFORM GOBACK-ERROR
+           END-IF
+           .
+       CONTROL-CONTRAT.
+           MOVE CODEA               TO CNT-CODEA
+           MOVE SIREN               TO CNT-SIREN
+           MOVE P-CODEP             TO CNT-CODEP
+           MOVE ZSP7-FONCTION       TO CNT-FONCTION
+             EXEC SQL
+               SELECT *
+               INTO :CONTRAT
+               FROM CONTRAT
+               WHERE
+                     CODEP          = :CNT-CODEP AND
+                     SIREN          = :CNT-SIREN AND
+                     CODEA          = :CNT-CODEA AND
+                     FONCTION       = :CNT-FONCTION
+             END-EXEC
+           PERFORM EVALUATE-SQLCODE-EX
+            .
+       EVALUATE-SQLCODE.
+               EVALUATE SQLCODE
+                     WHEN ZEROES
+                       CONTINUE
+                     WHEN +100
+                       MOVE CNT-STEP TO ZSP7-CODRET
+                       PERFORM GOBACK-ERROR
+                     WHEN OTHER
+                      MOVE 11 TO ZSP7-CODRET
+                      MOVE SQLCODE TO SQLCODE-ED
+                      DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                      PERFORM GOBACK-ERROR
+               END-EVALUATE.
+       EVALUATE-SQLCODE-EX.
+               EVALUATE SQLCODE
+                     WHEN ZEROES
+                       MOVE 7 TO  ZSP7-CODRET
+                       PERFORM GOBACK-ERROR
+                     WHEN +100
+                       CONTINUE
+                     WHEN OTHER
+                      MOVE 11 TO ZSP7-CODRET
+                      DISPLAY 'ERREUR SELECT, SQLCODE : ' SQLCODE
+                      PERFORM GOBACK-ERROR
+               END-EVALUATE.
+
+       GOBACK-ERROR.
+           MOVE P-ERR(ZSP7-CODRET) TO ZSP7-LIBERR
+           GOBACK
+           .
+

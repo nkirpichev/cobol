@@ -1,0 +1,52 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP3.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FKSDS ASSIGN TO DDINPUT
+           ORGANIZATION IS INDEXED
+           RECORD KEY IS E-CODE-PRDT
+           ACCESS MODE IS RANDOM
+           FILE STATUS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FKSDS.
+       01 ENR.
+           05 E-CODE-PRDT    PIC X(4).
+           05                PIC X.
+           05 E-TYPE-MVT     PIC X.
+           05                PIC X.
+           05 E-CTE-MVT      PIC 99.
+           05                PIC X.
+           05 E-PRIX         PIC 999V99.
+           05                PIC X(65).
+       WORKING-STORAGE SECTION.
+       01 FS                 PIC 99.
+       LINKAGE SECTION.
+       01  Z3-SP3.
+           05 Z3-CODE-PRDT          PIC X(4).
+           05 Z3-CODRET             PIC X.
+           05 Z3-ENR                PIC X(80).
+       PROCEDURE DIVISION USING Z3-SP3.
+           PERFORM DEBUT
+           PERFORM LECTURE
+           PERFORM FIN
+           GOBACK.
+       DEBUT.
+           OPEN INPUT FKSDS
+           IF FS NOT = ZEROS
+                MOVE 9 TO Z3-CODRET
+                GOBACK
+           END-IF.
+       LECTURE.
+           MOVE Z3-CODE-PRDT TO E-CODE-PRDT
+           READ FKSDS
+                 INVALID KEY MOVE 1 TO Z3-CODRET
+                 NOT INVALID KEY
+                     MOVE ENR TO Z3-ENR
+                     MOVE 0 TO Z3-CODRET
+           END-READ.
+       FIN.
+           CLOSE FKSDS
+           .

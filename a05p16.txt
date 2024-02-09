@@ -1,0 +1,21 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P16.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  Z3-SP3.
+           05 Z3-CODE-PRDT          PIC X(4).
+           05 Z3-CODRET             PIC X.
+           05 Z3-ENR                PIC X(80).
+       PROCEDURE DIVISION.
+           ACCEPT Z3-CODE-PRDT
+           PERFORM UNTIL Z3-CODE-PRDT = 'FIN'
+                CALL 'A05SP3' USING Z3-SP3
+                EVALUATE Z3-CODRET
+                     WHEN 0 DISPLAY Z3-ENR
+                     WHEN 1 DISPLAY 'KEY NOT FOUND - ' Z3-CODE-PRDT
+                     WHEN OTHER DISPLAY 'ERROR' Z3-CODRET
+                END-EVALUATE
+                ACCEPT Z3-CODE-PRDT
+           END-PERFORM
+           STOP RUN.

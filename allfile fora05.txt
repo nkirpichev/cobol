@@ -1,0 +1,5124 @@
+ MEMBER NAME  A05P3
+       * DIVISION FOR DESCRIPTION. OBLIGATOIRE
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P3.
+        AUTHOR. NIKOLAI.
+        DATE-WRITTEN. 21/11/2023.
+       ******************************************************************
+       * LECTURE DU FICHIER CLIENT                                     **
+       ******************************************************************
+       * PROGRAM EXECUTION ENVIRONMENT
+        ENVIRONMENT DIVISION.
+       * CONF
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+       * IO
+        INPUT-OUTPUT SECTION.
+       * FILE FROM JCL
+        FILE-CONTROL.
+            SELECT FCLIENT ASSIGN TO DDCLIENT
+       * CODE ERROR
+                   FILE STATUS IS FS.
+       * DESCRIPTION VARIABLES FILE AND OTHERS
+        DATA DIVISION.
+        FILE SECTION.
+        FD  FCLIENT
+            RECORDING MODE IS F.
+       *FILE STRUCTURE
+        01  ENR-CLIENT.
+            05 ENR-NUMCLI      PIC 99.
+            05                 PIC X.
+            05 ENR-NOM         PIC X(15).
+            05 ENR-PRENOM      PIC X(15).
+            05 ENR-DATE-ENT    PIC 9(8).
+            05                 PIC X(39).
+        WORKING-STORAGE SECTION.
+        01  FS                 PIC 99      VALUE ZEROES.
+        01  NSEC-FULL.
+            05 NSEC-SEX        PIC 9.
+                  88 HOMME            VALUE 1.
+                  88 FEMME            VALUE 2.
+            05 NSEC-DATE.
+                  10 NSEC-AN   PIC 99.
+                  10 NSEC-MOIS PIC 99.
+            05 NSEC-LIEU.
+                  10 NSEC-DEP  PIC 99.
+                  10 NSEC-COMM PIC 9(3).
+            05 NSEC-NUM        PIC 9(3).
+        01  ENR-DATE-FORMAT    PIC 9999/99/99.
+        01  ENR-DATE-GRP.
+            05 ENR-YEAR        PIC 9(4).
+            05 ENR-MONTH       PIC 99.
+            05 ENR-DAY         PIC 99.
+        01  ISVIDE             PIC 9 VALUE 1.
+        77  CNT                PIC 9(3) VALUE 0.
+        PROCEDURE DIVISION.
+            PERFORM DEBUT
+            PERFORM TRAITEMENT UNTIL FS = 10
+            PERFORM FIN
+            STOP RUN.
+
+        DEBUT.
+            OPEN INPUT FCLIENT
+            IF FS NOT = ZEROES
+               DISPLAY 'ERROR OPEN FILE: ' FS
+               STOP RUN
+            END-IF.
+
+            DISPLAY 'TTTT'.
+       *READING FILE
+        TRAITEMENT.
+            READ FCLIENT
+            IF FS = ZEROES
+               MOVE 0 TO ISVIDE
+               ADD 1 TO CNT
+               MOVE ENR-DATE-ENT TO ENR-DATE-GRP
+               IF ENR-YEAR <= 2022
+                   DISPLAY 'OLD CLIENT - '
+               ELSE
+                   DISPLAY 'NEW CLIENT - '
+               END-IF
+               MOVE ENR-DATE-ENT TO ENR-DATE-FORMAT
+               DISPLAY '   NUMERO   - ' ENR-NUMCLI
+               DISPLAY '   NOM      - ' ENR-NOM
+               DISPLAY '   PRENOM   - ' ENR-PRENOM
+               DISPLAY '   DATE ENT - ' ENR-DATE-FORMAT
+               DISPLAY SPACES
+            ELSE
+               IF FS = 10
+                  IF ISVIDE = 1
+                     DISPLAY 'FILE IS VIDE'
+                  ELSE
+                     DISPLAY 'TOTAL RECORDS - ' CNT
+                  END-IF
+               ELSE
+                  DISPLAY 'ERROR READ FILE: ' FS
+                  STOP RUN
+               END-IF
+            END-IF.
+        FIN.
+            CLOSE FCLIENT.
+ MEMBER NAME  A05P4
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P4.
+        AUTHOR. NIKOLAI.
+        DATE-WRITTEN. 21/11/2023.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FCLIENT ASSIGN TO DDCLIENT
+                   FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD  FCLIENT
+            RECORDING MODE IS F.
+        01  ENR-CLIENT.
+            05 ENR-NUMCLI      PIC 99.
+            05                 PIC X.
+            05 ENR-NOM         PIC X(15).
+            05 ENR-PRENOM      PIC X(15).
+            05 ENR-DATE-ENT    PIC 9(8).
+            05                 PIC X(39).
+        WORKING-STORAGE SECTION.
+        01  FS                 PIC 99      VALUE ZEROES.
+        01  ENR-DATE-FORMAT    PIC 9999/99/99.
+        01  ENR-DATE-GRP.
+            05 ENR-YEAR        PIC 9(4).
+            05 ENR-MONTH       PIC 99.
+            05 ENR-DAY         PIC 99.
+        01  CNT                PIC 99 VALUE 0.
+        01                     PIC X VALUE ZEROES.
+            88 END-FILE              VALUE 'F'.
+        PROCEDURE DIVISION.
+            PERFORM DEBUT
+            PERFORM UNTIL END-FILE
+               PERFORM READ-FILE
+               PERFORM TRAITEMENT
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN.
+
+        DEBUT.
+            OPEN INPUT FCLIENT
+            IF FS NOT = ZEROES
+               DISPLAY 'ERROR OPEN FILE: ' FS
+               STOP RUN
+            END-IF
+
+            DISPLAY 'LISTE DE CLIENTS'.
+        READ-FILE.
+            READ FCLIENT
+               AT END SET END-FILE TO TRUE
+               NOT AT END ADD 1 TO CNT
+            END-READ
+            IF NOT FS = ZEROES
+                IF FS = 10
+                   IF CNT = 0
+                       DISPLAY 'FILE IS VIDE'
+                   ELSE
+                       DISPLAY 'TOTAL RECORDS - ' CNT
+                   END-IF
+                ELSE
+                   DISPLAY 'ERROR READ FILE: ' FS
+                   STOP RUN
+                END-IF
+            END-IF.
+       *READING FILE
+        TRAITEMENT.
+            IF FS = ZEROES
+               MOVE ENR-DATE-ENT TO ENR-DATE-GRP
+               IF ENR-YEAR <= 2022
+                  DISPLAY 'OLD CLIENT - '
+               ELSE
+                  DISPLAY 'NEW CLIENT - '
+               END-IF
+
+               MOVE ENR-DATE-ENT TO ENR-DATE-FORMAT
+               DISPLAY '   NUMERO   - ' ENR-NUMCLI
+               DISPLAY '   NOM      - ' ENR-NOM
+               DISPLAY '   PRENOM   - ' ENR-PRENOM
+               DISPLAY '   DATE ENT - ' ENR-DATE-FORMAT
+               DISPLAY SPACES
+            END-IF.
+        FIN.
+            CLOSE FCLIENT.
+ MEMBER NAME  A05P5
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P5.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 V1 PIC X(40) VALUE 'IL ETAIT UNE FOIS UN MARCHAND DE FOIES'.
+        01 DECMP REDEFINES V1.
+            05 STR PIC X(8) OCCURS 5.
+        01 V2 PIC X(40).
+        01 COUNTSPACES PIC 99 VALUE ZERO.
+        01 CNT         PIC 9 VALUE 1.
+        01 I           PIC 99.
+        01 I-CH        PIC 9.
+        01 ISNUMBER    PIC X.
+        01 V3          PIC X(10) VALUE 'ARTHUR'.
+        01 V4          PIC X(10) VALUE 'RIMBAUD'.
+        01 V6          PIC X(10) VALUE 'RIMBAUDTR'.
+        01 V5          PIC X(35).
+        01 V7          PIC X(24) VALUE 'AAAAA;BBBBB;CCCCC;DDDDD;'.
+        01 TAB-V7.
+             05 ROW-V7 PIC X(5) OCCURS 4.
+        PROCEDURE DIVISION.
+       *****
+            DISPLAY V1
+            INSPECT V1 TALLYING COUNTSPACES FOR ALL SPACES
+            DISPLAY 'TOTAL SPACES - ' COUNTSPACES
+            MOVE V1 TO V2
+            INSPECT V2 REPLACING ALL 'FOI' BY 'OIF'
+            DISPLAY 'REPLACING 1  - ' V2
+            MOVE V1 TO V2
+            INSPECT V2 REPLACING FIRST ' ' BY '*'
+            DISPLAY 'REPLACING 2  - ' V2
+       **** DISPLAY 'DECOMPOSER V1- ' V1-STR(2)
+
+            PERFORM UNTIL CNT > 5
+               MOVE 0 TO COUNTSPACES
+               INSPECT STR(CNT) TALLYING COUNTSPACES FOR LEADING SPACES
+               DISPLAY 'POSTE - ' CNT ' LEADING SPACES - ' COUNTSPACES
+               ADD 1 TO CNT
+            END-PERFORM
+            MOVE V1 TO V2
+            INSPECT V2 CONVERTING 'AEIOUY' TO '123456'
+            DISPLAY 'CONVERTING   - ' V2
+       *****************
+            MOVE 1 TO CNT
+            PERFORM UNTIL CNT > 5
+               MOVE 'F' TO ISNUMBER
+               INSPECT STR(CNT) CONVERTING 'AEIOUY' TO '123456'
+               PERFORM VARYING I FROM 0 BY 1 UNTIL I > 9
+                  MOVE 0 TO COUNTSPACES
+                  MOVE I TO I-CH
+                  INSPECT STR(CNT) TALLYING COUNTSPACES FOR ALL I-CH
+       *         DISPLAY STR(CNT) ' - ' I-CH ' - ' COUNTSPACES
+                  IF NOT COUNTSPACES = 0
+                     MOVE 'T' TO ISNUMBER
+                  END-IF
+                END-PERFORM
+                IF ISNUMBER = 'T'
+                     DISPLAY 'POSTE - ' STR(CNT) ' - AVEC CHIFFRES'
+                END-IF
+                ADD 1 TO CNT
+            END-PERFORM
+       *  STRING ++
+            STRING V3   DELIMITED BY SPACES
+                   ' '  DELIMITED BY SIZE
+                   V4   DELIMITED BY SPACES
+                   ' '  DELIMITED BY SIZE
+                   V6   DELIMITED BY SIZE
+              INTO V5
+            DISPLAY SPACES
+            DISPLAY V5
+       *  STRING --
+            MOVE 1 TO I
+            PERFORM VARYING CNT FROM 1 BY 1 UNTIL CNT > 4
+               UNSTRING V7 DELIMITED BY ALL ';' INTO ROW-V7(CNT)
+                  WITH POINTER I
+               END-UNSTRING
+               DISPLAY 'POSTE ' CNT ' - ' ROW-V7(CNT)
+            END-PERFORM
+            DISPLAY SPACES
+       *    DISPLAY TAB-V7
+            STOP RUN.
+ MEMBER NAME  A05P6
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P6
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 Z1      PIC 9   VALUE 5.
+        01 Z2      PIC 9V9 VALUE 3,4.
+        01 Z3      PIC S999V99    VALUE -11,64.
+        01 Z4      PIC S9(9)V9(9) VALUE ZEROES.
+        01 Z5      PIC S9(9)V9 VALUE ZEROES.
+        01 Z4-FORM PIC +(9),+(9).
+        01 Z5-FORM PIC +(9),9.
+        01 ZACC.
+            05 ZA      PIC X VALUE 'A'.
+            05 ZB      PIC X VALUE 'B'.
+            05 ZC      PIC X VALUE 'C'.
+        01 ZACC-2.
+            05 ZD      PIC X.
+            05 ZE      PIC X.
+            05 ZF      PIC X.
+        PROCEDURE DIVISION.
+       *******
+            ADD Z1 Z2 Z3 5 TO Z4
+            MOVE Z4 TO Z4-FORM
+            DISPLAY 'RESULT     - ' Z4-FORM
+            MOVE Z4 TO Z5-FORM
+            DISPLAY 'UNROUNDED  - ' Z5-FORM
+            MOVE 0 TO Z4
+            ADD Z1 Z2 Z3 5 TO Z5 ROUNDED
+            MOVE Z5 TO Z5-FORM
+            DISPLAY 'ROUNDED Z5 - ' Z5-FORM
+       *******
+            COMPUTE Z4 = Z1 + Z2 +  Z3 + 5
+            MOVE Z4 TO Z4-FORM
+            DISPLAY Z4-FORM
+       *******
+            SUBTRACT Z3 FROM Z4
+            MOVE Z4 TO Z4-FORM
+            DISPLAY Z4-FORM
+       *******
+            MULTIPLY -1 BY Z4
+            MOVE Z4 TO Z4-FORM
+            DISPLAY Z4-FORM
+       *******
+            DISPLAY ZA ' ' ZB ' ' ZC
+            PERFORM COND.
+            MOVE 'A' TO ZB
+            DISPLAY ZA ' ' ZB ' ' ZC
+            PERFORM COND.
+            MOVE 'B' TO ZA
+            DISPLAY ZA ' ' ZB ' ' ZC
+            PERFORM COND.
+       ********************
+            DISPLAY SPACES
+            ACCEPT ZACC
+            PERFORM UNTIL ZACC = 'FIN'
+                DISPLAY ZACC
+                PERFORM COND
+                ACCEPT ZACC
+            END-PERFORM.
+       ***********************
+            DISPLAY SPACES
+            ACCEPT ZACC-2
+            PERFORM UNTIL ZACC-2 = 'FIN'
+                PERFORM COND-EV
+                ACCEPT ZACC-2
+            END-PERFORM.
+            STOP RUN.
+       ***********************
+        COND.
+            IF ZA = 'A'  AND ZB = 'B' AND ZC = 'C'
+                DISPLAY 'AFF1'
+            ELSE
+                IF NOT ZA = 'A'  OR ZB = 'B'
+                    DISPLAY 'AFF2'
+                ELSE
+                    DISPLAY 'RIEN'
+                END-IF
+            END-IF.
+        COND-EV.
+            EVALUATE ZD
+                WHEN 'D'           DISPLAY 'TDTD'
+                WHEN 'E' WHEN 'F'  DISPLAY 'TDTE'
+                WHEN OTHER         DISPLAY 'AUCUN'
+            END-EVALUATE.
+            EVALUATE ZE ALSO ZF
+                WHEN 'E' ALSO 'F'  DISPLAY 'TDTF'
+                WHEN 'F' ALSO 'E'  DISPLAY 'TDTE'
+                WHEN OTHER         DISPLAY 'AUCUN'
+            END-EVALUATE.
+            EVALUATE TRUE
+                WHEN ZE > ZF DISPLAY 'TDTX'
+                WHEN ZE NOT = 'A'  DISPLAY 'TDTY'
+            END-EVALUATE.
+ MEMBER NAME  A05P7
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P7.
+        AUTHOR. NIKOLAI.
+        DATE-WRITTEN. 28/11/2023.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FCLIENT ASSIGN TO DDCLIENT
+                   FILE STATUS IS FS.
+            SELECT FCLIENT-WRITE ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS-WR.
+        DATA DIVISION.
+        FILE SECTION.
+        FD  FCLIENT
+            RECORDING MODE IS F.
+       *FILE STRUCTURE
+        01  ENR-CLIENT.
+            05 ENR-NUMCLI      PIC 99.
+            05                 PIC X.
+            05 ENR-NOM         PIC X(15).
+            05 ENR-PRENOM      PIC X(15).
+            05 ENR-DATE-ENT    PIC 9(8).
+            05                 PIC X(39).
+        FD  FCLIENT-WRITE.
+        01  ENR-CLIENT-W       PIC X(80).
+       *01  ENR-CLIENT-W.
+       *    05 ENR-NUMCLI      PIC 99.
+       *    05                 PIC X.
+       *    05 ENR-NOM         PIC X(15).
+       *    05 ENR-PRENOM      PIC X(15).
+       *    05 ENR-DATE-ENT    PIC 9(8).
+       *    05                 PIC X(39).
+        WORKING-STORAGE SECTION.
+        01  FS                 PIC 99      VALUE ZEROES.
+        01  FS-WR              PIC 99      VALUE ZEROES.
+        77  CNT                PIC 9(3)    VALUE 0.
+        PROCEDURE DIVISION.
+            OPEN INPUT FCLIENT
+            IF FS NOT = ZEROES
+                DISPLAY 'ERROR'
+                STOP RUN
+            END-IF
+            OPEN OUTPUT FCLIENT-WRITE
+            IF FS-WR NOT = ZEROES
+                DISPLAY 'ERROR'
+                STOP RUN
+            END-IF
+       ********************
+            PERFORM UNTIL FS = 10
+               READ FCLIENT
+               IF ENR-DATE-ENT OF ENR-CLIENT > 20210100
+                   WRITE ENR-CLIENT-W FROM ENR-CLIENT
+               END-IF
+            END-PERFORM
+       ********************
+            CLOSE FCLIENT
+            CLOSE FCLIENT-WRITE
+            STOP RUN.
+ MEMBER NAME  A05P8
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P8.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT ASSIGN TO DDINPUT
+                   FILE STATUS IS FS.
+            SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS1.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT.
+        01 ENT-INPUT.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(71).
+        FD FOUTPUT.
+        01 ENT-OUTPUT           PIC X(80).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS1                  PIC 99.
+        01 ZONEERROR            PIC 9.
+             88 OK              VALUE 0.
+             88 ISERROR         VALUE 1.
+        01 CNT                  PIC 99 VALUE ZEROS.
+        01 CNT-ERR              PIC 99 VALUE ZEROS.
+        01 CNT-ENR              PIC 99 VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM LECTURE
+             PERFORM UNTIL FS = 10
+                 PERFORM CHECK-ERR-PRDT
+                 PERFORM CHECK-ERR-TYPE
+                 PERFORM CHECK-ERR-CNT
+                 PERFORM TRAITENEMENT
+                 PERFORM LECTURE
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        DEBUT.
+             OPEN INPUT FINPUT
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             OPEN OUTPUT FOUTPUT
+             IF FS1 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF.
+       ******************CHECKING ERRORS*****
+        CHECK-ERR-PRDT.
+             IF E-CODE-PRDT = SPACES
+                   DISPLAY 'LINE - ' CNT ' CODE ERROR - ' E-CODE-PRDT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-TYPE.
+             IF E-TYPE-MVT NOT = 'E' AND E-TYPE-MVT NOT = 'S'
+                   DISPLAY 'LINE - ' CNT ' TYPE ERROR - ' E-TYPE-MVT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-CNT.
+             IF E-CTE-MVT NOT NUMERIC
+                   DISPLAY 'LINE - ' CNT
+                           ' CTE NOT NUMERIC - ' E-CTE-MVT
+                   SET ISERROR TO TRUE
+             ELSE
+                   IF E-CTE-MVT < 1
+                        DISPLAY 'LINE - ' CNT ' CTE = 0 - ' E-CTE-MVT
+                        SET ISERROR TO TRUE
+                   END-IF
+             END-IF.
+       ************ READ / WRITE *****
+        TRAITENEMENT.
+             IF OK
+                   WRITE ENT-OUTPUT FROM ENT-INPUT
+                   ADD 1 TO CNT-ENR
+             ELSE
+                   ADD 1 TO CNT-ERR
+             END-IF.
+        LECTURE.
+             READ FINPUT NOT AT END
+                  ADD 1 TO CNT
+             SET OK TO TRUE
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF.
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'TOTAL       - ' CNT
+             DISPLAY 'TOTAL ERROR - ' CNT-ERR
+             DISPLAY 'TOTAL ENREG - ' CNT-ENR
+             CLOSE FINPUT
+             CLOSE FOUTPUT.
+ MEMBER NAME  A05P9
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P9.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TAB.
+            05 TAB-X    OCCURS 5 PIC 99.
+        01 L-TAB        PIC 99.
+        01 STR          PIC X(10) VALUE 'QWERTY'.
+        PROCEDURE DIVISION.
+            MOVE LENGTH TAB TO L-TAB
+            DISPLAY 'LENGTH TAB    - ' L-TAB
+            DIVIDE LENGTH TAB-X INTO LENGTH TAB GIVING L-TAB
+            DISPLAY 'LENGTH OF TAB - ' L-TAB
+            DISPLAY 'SUBSTRING     - ' STR(3:1) ' - ' STR(2:2)
+            STOP RUN.
+ MEMBER NAME  A05P8A
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P8A.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT ASSIGN TO DDINPUT
+                   FILE STATUS IS FS.
+            SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS1.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT.
+        01 ENT-INPUT.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(71).
+        FD FOUTPUT.
+        01   ENT-OUTPUT.
+             05 S-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 S-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 S-CTE-MVT       PIC 9(2).
+             05                 PIC X.
+             05 S-PRIX          PIC 999V99 COMP-3.
+             05                 PIC X(67).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS1                  PIC 99.
+        01 ZONEERROR            PIC 9.
+             88 OK              VALUE 0.
+             88 ISERROR         VALUE 1.
+        01 CNT                  PIC 99 VALUE ZEROS.
+        01 CNT-ERR              PIC 99 VALUE ZEROS.
+        01 CNT-ENR              PIC 99 VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 PRIX-TAB.
+             05 PRIX-EL OCCURS 5
+                        ASCENDING KEY IS PRIX-CODE
+                        INDEXED BY I.
+                  10 PRIX-CODE  PIC X(4).
+                  10 PRIX-VAL   PIC 999V99.
+        01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.
+        01 PRIX-TOTAL           PIC 9(5)V99  VALUE ZEROS.
+        01 PRIX-TOTAL-F         PIC Z(4)9.99 VALUE ZEROS.
+        01 PRIX-TOTAL-ALL       PIC 9(5)V99  VALUE ZEROS.
+        01 PRIX-TOTAL-ALL-F     PIC Z(4)9.99 VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM EXECUTION UNTIL FIN-FILE
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        EXECUTION.
+             PERFORM LECTURE
+             IF FILE-READ-OK
+                  PERFORM CHECK-ERR-PRDT
+                  PERFORM CHECK-ERR-TYPE
+                  PERFORM CHECK-ERR-CNT
+                  PERFORM TRAITEMENT
+             END-IF.
+       ***************
+        DEBUT.
+             OPEN INPUT FINPUT
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             SET FILE-READ-OK TO TRUE
+             OPEN OUTPUT FOUTPUT
+             IF FS1 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             MOVE 'Z001' TO PRIX-CODE(1)
+             MOVE 051.69 TO PRIX-VAL(1).
+             MOVE 'A001' TO PRIX-CODE(2)
+             MOVE 004.05 TO PRIX-VAL(2).
+             MOVE 'A006' TO PRIX-CODE(3)
+             MOVE 100.00 TO PRIX-VAL(3).
+             MOVE 'D110' TO PRIX-CODE(4)
+             MOVE 581.55 TO PRIX-VAL(4).
+             MOVE 'R001' TO PRIX-CODE(5)
+             MOVE 078.00 TO PRIX-VAL(5).
+       ******************CHECKING ERRORS*****
+        CHECK-ERR-PRDT.
+             IF E-CODE-PRDT = SPACES
+                   DISPLAY '***LINE - ' CNT ' CODE ERROR - ' E-CODE-PRDT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-TYPE.
+             IF E-TYPE-MVT NOT = 'E' AND E-TYPE-MVT NOT = 'S'
+                   DISPLAY '***LINE - ' CNT ' TYPE ERROR - ' E-TYPE-MVT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-CNT.
+             IF E-CTE-MVT NOT NUMERIC
+                   DISPLAY '***LINE - ' CNT
+                           ' CTE NOT NUMERIC - ' E-CTE-MVT
+                   SET ISERROR TO TRUE
+             ELSE
+                   IF E-CTE-MVT < 1
+                        DISPLAY '***LINE - ' CNT ' CTE = 0 - ' E-CTE-MVT
+                        SET ISERROR TO TRUE
+                   END-IF
+             END-IF.
+       ************ READ / WRITE *****
+        TRAITEMENT.
+             IF OK
+                   SEARCH ALL PRIX-EL
+                       AT END
+                            MOVE 0 TO PRIX-VAL-S
+                            DISPLAY '***CODE PRODUIT NOT IN TABLE'
+                       WHEN PRIX-CODE(I) = E-CODE-PRDT
+                            MOVE PRIX-VAL(I) TO PRIX-VAL-S
+                   END-SEARCH
+                   MOVE ENT-INPUT TO ENT-OUTPUT
+                   MOVE PRIX-VAL-S TO S-PRIX
+                   WRITE ENT-OUTPUT
+                   ADD 1 TO CNT-ENR
+
+                   COMPUTE PRIX-TOTAL = PRIX-VAL-S * E-CTE-MVT
+                   ADD PRIX-TOTAL TO PRIX-TOTAL-ALL
+                   MOVE PRIX-TOTAL TO PRIX-TOTAL-F
+                   MOVE PRIX-VAL-S TO PRIX-VAL-S-F
+                   DISPLAY 'PRODUIT - ' E-CODE-PRDT
+                            ' PRIX = ' PRIX-VAL-S-F
+                            ' CTE = ' E-CTE-MVT
+                            ' PRIX TOTAL = ' PRIX-TOTAL-F
+             ELSE
+                   ADD 1 TO CNT-ERR
+             END-IF.
+        LECTURE.
+             READ FINPUT
+                  AT END SET FIN-FILE TO TRUE
+                  NOT AT END ADD 1 TO CNT
+             END-READ
+             SET OK TO TRUE
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF.
+        FIN.
+             DISPLAY SPACES
+             MOVE PRIX-TOTAL-ALL TO PRIX-TOTAL-ALL-F
+             DISPLAY 'PRIX TOTAL ALL - ' PRIX-TOTAL-ALL-F
+             DISPLAY SPACES
+             DISPLAY 'TOTAL          - ' CNT
+             DISPLAY 'TOTAL ERROR    - ' CNT-ERR
+             DISPLAY 'TOTAL ENREG    - ' CNT-ENR
+             CLOSE FINPUT
+             CLOSE FOUTPUT.
+ MEMBER NAME  A05P10B
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P10.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT ASSIGN TO DDINPUT
+                   FILE STATUS IS FS.
+            SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS1.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT.
+        01 ENT-INPUT.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(71).
+        FD FOUTPUT.
+        01   ENT-OUTPUT.
+             05 S-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 S-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 S-CTE-MVT       PIC 9(2).
+             05                 PIC X.
+             05 S-PRIX          PIC 999V99.
+             05                 PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS1                  PIC 99 VALUE ZEROS.
+        01 ZONEERROR            PIC 9.
+             88 OK              VALUE 0.
+             88 ISERROR         VALUE 1.
+        01 CNT                  PIC 99 VALUE ZEROS.
+        01 K                    PIC 99 VALUE ZEROS.
+        01 CNT-ERR              PIC 99 VALUE ZEROS.
+        01 CNT-ENR              PIC 99 VALUE ZEROS.
+        01 CURRENT-EL           PIC 99 VALUE 0.
+        01 CODE-TMP             PIC X(4) VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 PRIX-TAB.
+             05 PRIX-EL OCCURS 5
+                        ASCENDING KEY IS PRIX-CODE
+                        INDEXED BY I.
+                  10 PRIX-CODE  PIC X(4).
+                  10 PRIX-VAL   PIC 999V99.
+        01 TAB-PROD.
+             05 TAB-PROD-EL OCCURS 10.
+                  10 PROD-CODE  PIC X(4).
+                  10 PROD-CNT   PIC 999      VALUE ZEROS.
+                  10 PROD-STK   PIC S999     VALUE ZEROS.
+                  10 PROD-PRIX  PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.
+        01 PRIX-TOTAL           PIC 9(5)V99  VALUE ZEROS.
+        01 PRIX-TOTAL-F         PIC Z(4)9.99 VALUE ZEROS.
+        01 PRIX-TOTAL-ALL       PIC 9(5)V99  VALUE ZEROS.
+        01 PRIX-TOTAL-ALL-F     PIC Z(4)9.99 VALUE ZEROS.
+        01 PROD-STK-F           PIC ++9      VALUE ZEROS.
+        01 DIRECTION            PIC X.
+        01 PROD-PR              PIC X.
+        01 PROD-NEW-PRIX        PIC 999V99   VALUE ZEROS.
+        01 PROD-NEW-PRIX-F      PIC ZZ9.99   VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM EXECUTION UNTIL FIN-FILE
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        EXECUTION.
+             PERFORM LECTURE
+             IF FILE-READ-OK
+                  PERFORM CHECK-ERR-PRDT
+                  PERFORM CHECK-ERR-TYPE
+                  PERFORM CHECK-ERR-CNT
+                  PERFORM TRAITEMENT
+             END-IF.
+       ***************
+        DEBUT.
+             OPEN INPUT FINPUT
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             SET FILE-READ-OK TO TRUE
+             OPEN OUTPUT FOUTPUT
+             IF FS1 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             MOVE 'Z001' TO PRIX-CODE(1)
+             MOVE 051.69 TO PRIX-VAL(1).
+             MOVE 'A001' TO PRIX-CODE(2)
+             MOVE 004.05 TO PRIX-VAL(2).
+             MOVE 'A006' TO PRIX-CODE(3)
+             MOVE 100.00 TO PRIX-VAL(3).
+             MOVE 'D110' TO PRIX-CODE(4)
+             MOVE 581.55 TO PRIX-VAL(4).
+             MOVE 'R001' TO PRIX-CODE(5)
+             MOVE 078.00 TO PRIX-VAL(5).
+       ******************CHECKING ERRORS*****
+        CHECK-ERR-PRDT.
+             IF E-CODE-PRDT = SPACES
+                   DISPLAY '***LINE - ' CNT ' CODE ERROR - ' E-CODE-PRDT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-TYPE.
+             IF E-TYPE-MVT NOT = 'E' AND E-TYPE-MVT NOT = 'S'
+                   DISPLAY '***LINE - ' CNT ' TYPE ERROR - ' E-TYPE-MVT
+                   SET ISERROR TO TRUE
+             END-IF.
+        CHECK-ERR-CNT.
+             IF E-CTE-MVT NOT NUMERIC
+                   DISPLAY '***LINE - ' CNT
+                           ' CTE NOT NUMERIC - ' E-CTE-MVT
+                   SET ISERROR TO TRUE
+             ELSE
+                   IF E-CTE-MVT < 1
+                        DISPLAY '***LINE - ' CNT ' CTE = 0 - ' E-CTE-MVT
+                        SET ISERROR TO TRUE
+                   END-IF
+             END-IF.
+       ************ READ / WRITE *****
+        TRAITEMENT.
+             IF OK
+                   IF CODE-TMP NOT = E-CODE-PRDT
+                        ADD 1 TO CURRENT-EL
+                        MOVE E-CODE-PRDT TO PROD-CODE(CURRENT-EL)
+                        MOVE 1 TO PROD-CNT(CURRENT-EL)
+                        MOVE 0 TO PROD-STK(CURRENT-EL)
+                   ELSE
+                        ADD 1 TO PROD-CNT(CURRENT-EL)
+                   END-IF
+                   IF E-TYPE-MVT = 'E'
+                        ADD      E-CTE-MVT TO   PROD-STK(CURRENT-EL)
+                   ELSE
+                        SUBTRACT E-CTE-MVT FROM PROD-STK(CURRENT-EL)
+                   END-IF
+                   MOVE E-CODE-PRDT TO CODE-TMP
+       *
+                   SEARCH ALL PRIX-EL
+                        AT END
+                            MOVE 0 TO PRIX-VAL-S
+       *                   DISPLAY '***CODE PRODUIT NOT IN TABLE'
+                        WHEN PRIX-CODE(I) = E-CODE-PRDT
+                            MOVE PRIX-VAL(I) TO PROD-PRIX(CURRENT-EL)
+                   END-SEARCH
+
+       *           MOVE ENT-INPUT TO ENT-OUTPUT
+       *           MOVE PRIX-VAL-S TO S-PRIX
+                   ADD 1 TO CNT-ENR
+
+       *           COMPUTE PRIX-TOTAL = PRIX-VAL-S * E-CTE-MVT
+       *           ADD PRIX-TOTAL TO PRIX-TOTAL-ALL
+       *           MOVE PRIX-TOTAL TO PRIX-TOTAL-F
+       *           MOVE PRIX-VAL-S TO PRIX-VAL-S-F
+       *           DISPLAY 'PRODUIT - ' E-CODE-PRDT
+       *                    ' PRIX = ' PRIX-VAL-S-F
+       *                    ' CTE = ' E-CTE-MVT
+       *                    ' PRIX TOTAL = ' PRIX-TOTAL-F
+             ELSE
+                   ADD 1 TO CNT-ERR
+             END-IF.
+        LECTURE.
+             READ FINPUT
+                  AT END SET FIN-FILE TO TRUE
+                  NOT AT END ADD 1 TO CNT
+             END-READ
+             SET OK TO TRUE
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF.
+        FIN.
+             DISPLAY SPACES
+             PERFORM VARYING K FROM 1 BY 1 UNTIL K > CURRENT-EL
+                  IF PROD-STK(K) < 0
+                      MOVE 'S' TO  DIRECTION
+                  ELSE
+                      MOVE 'E' TO  DIRECTION
+                  END-IF
+
+                  MOVE PROD-CODE(K) TO PROD-PR
+                  EVALUATE PROD-PR
+                      WHEN 'A' COMPUTE PROD-NEW-PRIX = PROD-PRIX(K) * 1.1
+                      WHEN 'D' COMPUTE PROD-NEW-PRIX = PROD-PRIX(K) - 50
+                      WHEN OTHER MOVE PROD-PRIX(K) TO PROD-NEW-PRIX
+                  END-EVALUATE
+
+       **************DISPLAY
+                  MOVE PROD-STK(K)   TO PROD-STK-F
+                  MOVE PROD-PRIX(K)  TO PRIX-VAL-S-F
+                  MOVE PROD-NEW-PRIX TO PROD-NEW-PRIX-F
+                  DISPLAY 'PRODUIT ' PROD-CODE(K) ' : NB = '  PROD-CNT(K)
+                          ', QNT ' DIRECTION ' ' PROD-STK-F
+                          ', OLD PRIX = ' PRIX-VAL-S-F
+                          ', NEW PRIX = ' PROD-NEW-PRIX-F
+
+       **************OUTPUT
+                  MOVE PROD-CODE(K)  TO S-CODE-PRDT
+                  MOVE DIRECTION     TO S-TYPE-MVT
+                  MOVE PROD-CNT(K)   TO S-CTE-MVT
+                  MOVE PROD-NEW-PRIX TO S-PRIX
+                  WRITE ENT-OUTPUT
+             END-PERFORM
+       *      MOVE PRIX-TOTAL-ALL TO PRIX-TOTAL-ALL-F
+       *      DISPLAY 'PRIX TOTAL ALL - ' PRIX-TOTAL-ALL-F
+             DISPLAY SPACES
+             DISPLAY 'TOTAL          - ' CNT
+             DISPLAY 'TOTAL ENREG    - ' CNT-ENR
+             DISPLAY 'TOTAL ERROR    - ' CNT-ERR
+             CLOSE FINPUT
+             CLOSE FOUTPUT.
+ MEMBER NAME  A05P10
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P10.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT ASSIGN TO DDINPUT
+                   FILE STATUS IS FS.
+            SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS1.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT.
+        01 ENT-INPUT.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(71).
+        FD FOUTPUT.
+        01   ENT-OUTPUT.
+             05 S-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 S-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 S-CTE-MVT       PIC 9(2).
+             05                 PIC X.
+             05 S-PRIX          PIC 999V99.
+             05                 PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS1                  PIC 99 VALUE ZEROS.
+        01 CNT                  PIC 99 VALUE ZEROS.
+        01 K                    PIC 99 VALUE ZEROS.
+        01 CURRENT-EL           PIC 99 VALUE 0.
+        01 CODE-TMP             PIC X(4) VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 PRIX-TAB.
+             05 PRIX-EL OCCURS 5
+                        ASCENDING KEY IS PRIX-CODE
+                        INDEXED BY I.
+                  10 PRIX-CODE  PIC X(4).
+                  10 PRIX-VAL   PIC 999V99.
+        01 TAB-PROD.
+             05 TAB-PROD-EL OCCURS 10.
+                  10 PROD-CODE  PIC X(4).
+                  10 PROD-CNT   PIC 999      VALUE ZEROS.
+                  10 PROD-STK   PIC S999     VALUE ZEROS.
+                  10 PROD-PRIX  PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.
+        01 PROD-STK-F           PIC ++9      VALUE ZEROS.
+        01 DIRECTION            PIC X.
+        01 PROD-PR              PIC X.
+        01 PROD-NEW-PRIX        PIC 999V99   VALUE ZEROS.
+        01 PROD-NEW-PRIX-F      PIC ZZ9.99   VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM UNTIL FIN-FILE
+                 PERFORM LECTURE
+                 IF FILE-READ-OK
+                      PERFORM TRAITEMENT
+                 END-IF
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        DEBUT.
+             OPEN INPUT FINPUT
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             SET FILE-READ-OK TO TRUE
+             OPEN OUTPUT FOUTPUT
+             IF FS1 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             MOVE 'Z001' TO PRIX-CODE(1)
+             MOVE 051.69 TO PRIX-VAL(1)
+             MOVE 'A001' TO PRIX-CODE(2)
+             MOVE 004.05 TO PRIX-VAL(2)
+             MOVE 'A006' TO PRIX-CODE(3)
+             MOVE 100.00 TO PRIX-VAL(3)
+             MOVE 'D110' TO PRIX-CODE(4)
+             MOVE 581.55 TO PRIX-VAL(4)
+             MOVE 'R001' TO PRIX-CODE(5)
+             MOVE 078.00 TO PRIX-VAL(5).
+       ************ READ / WRITE *****
+        TRAITEMENT.
+             IF CODE-TMP NOT = E-CODE-PRDT
+                  ADD 1 TO CURRENT-EL
+                  MOVE E-CODE-PRDT TO PROD-CODE(CURRENT-EL)
+                  MOVE 1 TO PROD-CNT(CURRENT-EL)
+                  MOVE 0 TO PROD-STK(CURRENT-EL)
+             ELSE
+                  ADD 1 TO PROD-CNT(CURRENT-EL)
+             END-IF
+             IF E-TYPE-MVT = 'E'
+                  ADD      E-CTE-MVT TO   PROD-STK(CURRENT-EL)
+             ELSE
+                  SUBTRACT E-CTE-MVT FROM PROD-STK(CURRENT-EL)
+             END-IF
+             MOVE E-CODE-PRDT TO CODE-TMP
+
+             SEARCH ALL PRIX-EL
+                  AT END
+                      MOVE 0 TO PRIX-VAL-S
+                  WHEN PRIX-CODE(I) = E-CODE-PRDT
+                      MOVE PRIX-VAL(I) TO PROD-PRIX(CURRENT-EL)
+             END-SEARCH
+             .
+        LECTURE.
+             READ FINPUT
+                  AT END SET FIN-FILE TO TRUE
+                  NOT AT END ADD 1 TO CNT
+             END-READ
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF.
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'PRODUIT     NUM       STOCK      OLD PRIX'
+                     '     NEW PRIX'
+             PERFORM VARYING K FROM 1 BY 1 UNTIL K > CURRENT-EL
+                  IF PROD-STK(K) < 0
+                      MOVE 'S' TO  DIRECTION
+                  ELSE
+                      MOVE 'E' TO  DIRECTION
+                  END-IF
+
+                  MOVE PROD-CODE(K) TO PROD-PR
+                  EVALUATE PROD-PR
+                      WHEN 'A' COMPUTE PROD-NEW-PRIX = PROD-PRIX(K) * 1.1
+                      WHEN 'D' COMPUTE PROD-NEW-PRIX = PROD-PRIX(K) - 50
+                      WHEN OTHER MOVE  PROD-PRIX(K) TO PROD-NEW-PRIX
+                  END-EVALUATE
+
+       **************DISPLAY
+                  MOVE PROD-STK(K)   TO PROD-STK-F
+                  MOVE PROD-PRIX(K)  TO PRIX-VAL-S-F
+                  MOVE PROD-NEW-PRIX TO PROD-NEW-PRIX-F
+                  DISPLAY  PROD-CODE(K) '        ' PROD-CNT(K) '       '
+                           DIRECTION ' ' PROD-STK-F '        '
+                           PRIX-VAL-S-F '       '
+                           PROD-NEW-PRIX-F
+       *          DISPLAY 'PRODUIT ' PROD-CODE(K) ' : NB = '  PROD-CNT(K)
+       *                  ', QNT ' DIRECTION ' ' PROD-STK-F
+       *                  ', OLD PRIX = ' PRIX-VAL-S-F
+       *                  ', NEW PRIX = ' PROD-NEW-PRIX-F
+
+       **************OUTPUT
+                  MOVE PROD-CODE(K)  TO S-CODE-PRDT
+                  MOVE DIRECTION     TO S-TYPE-MVT
+                  MOVE PROD-CNT(K)   TO S-CTE-MVT
+                  MOVE PROD-NEW-PRIX TO S-PRIX
+                  WRITE ENT-OUTPUT
+             END-PERFORM
+
+             DISPLAY SPACES
+             DISPLAY 'TOTAL RECORD   - ' CNT
+             CLOSE FINPUT
+             CLOSE FOUTPUT.
+ MEMBER NAME  A05P11
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P11.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT1  ASSIGN TO DDINPUT1
+                   FILE STATUS IS FS.
+            SELECT FINPUT2 ASSIGN TO DDINPUT2
+                   FILE STATUS IS FS1.
+            SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                   FILE STATUS IS FS2.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT1.
+        01 ENT-INPUT1.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(71).
+        FD FINPUT2.
+        01 ENT-INPUT2.
+             05 E-CODE-PRDT2    PIC X(4).
+             05                 PIC X.
+             05 E-PRIX          PIC 999V99.
+             05                 PIC X(70).
+        FD FOUTPUT.
+        01   ENT-OUTPUT.
+             05 S-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 S-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 S-CTE-MVT       PIC 9(2).
+             05                 PIC X.
+             05 S-PRIX          PIC 999V99.
+             05                 PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS1                  PIC 99 VALUE ZEROS.
+        01 FS2                  PIC 99 VALUE ZEROS.
+        01 CNT                  PIC 99 VALUE ZEROS.
+        01 K                    PIC 99 VALUE ZEROS.
+        01 FIN-ALL-FILE         PIC 9  VALUE 0.
+        01 CODE-TMP1            PIC X(4) VALUE ZEROS.
+        01 CODE-TMP2            PIC X(4) VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01                      PIC 9.
+             88 FILE-READ-OK2   VALUE 1.
+             88 FIN-FILE2       VALUE 0.
+        01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.
+        01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.
+        01 PROD-STK-F           PIC ++9      VALUE ZEROS.
+        01 DIRECTION            PIC X.
+        01 PROD-PR              PIC X.
+        01 PROD-NEW-PRIX        PIC 999V99   VALUE ZEROS.
+        01 PROD-NEW-PRIX-F      PIC ZZ9.99   VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM LECTURE1
+             PERFORM LECTURE2
+             PERFORM UNTIL FIN-ALL-FILE > 5
+                DISPLAY FIN-ALL-FILE ' - ' CODE-TMP1 ' = ' CODE-TMP2
+                IF FIN-FILE AND FIN-FILE2
+                    ADD 8 TO FIN-ALL-FILE
+                END-IF
+                PERFORM INITIALISE-OUTPUT
+                IF CODE-TMP1 = CODE-TMP2
+                    PERFORM MOVEALL
+                    PERFORM ECRITURE
+                    PERFORM LECTURE1
+                    PERFORM LECTURE2
+                ELSE
+                    IF CODE-TMP1 < CODE-TMP2 AND NOT FIN-FILE
+                        PERFORM MOVEQNT
+                        PERFORM ECRITURE
+                        PERFORM LECTURE1
+                    ELSE
+                        PERFORM MOVEPRIX
+                        PERFORM ECRITURE
+                        PERFORM LECTURE2
+                    END-IF
+                END-IF
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        DEBUT.
+             OPEN INPUT FINPUT1
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             OPEN INPUT FINPUT2
+             IF FS1 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             SET FILE-READ-OK TO TRUE
+             SET FILE-READ-OK2 TO TRUE
+             OPEN OUTPUT FOUTPUT
+             IF FS2 NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             .
+        INITIALISE-OUTPUT.
+             INITIALIZE   ENT-OUTPUT
+             MOVE 'E'  TO S-TYPE-MVT
+             .
+        MOVEALL.
+             MOVE E-CODE-PRDT  TO S-CODE-PRDT
+             MOVE E-TYPE-MVT   TO S-TYPE-MVT
+             MOVE E-CTE-MVT    TO S-CTE-MVT
+             MOVE E-PRIX       TO S-PRIX
+             .
+        MOVEPRIX.
+             MOVE E-CODE-PRDT2 TO S-CODE-PRDT
+             MOVE E-PRIX       TO S-PRIX
+             .
+        MOVEQNT.
+             MOVE E-CODE-PRDT  TO S-CODE-PRDT
+             MOVE E-TYPE-MVT   TO S-TYPE-MVT
+             MOVE E-CTE-MVT    TO S-CTE-MVT
+             .
+        LECTURE1.
+             IF NOT FIN-FILE
+                 READ FINPUT1
+                      AT END SET FIN-FILE TO TRUE
+                 END-READ
+                 IF FS NOT = ZEROS AND FS NOT = 10
+                     DISPLAY 'ERROR READING'
+                     STOP RUN
+                 END-IF
+                 MOVE E-CODE-PRDT TO CODE-TMP1
+             END-IF.
+        LECTURE2.
+             IF NOT FIN-FILE2
+                 READ FINPUT2
+                      AT END SET FIN-FILE2 TO TRUE
+                 END-READ
+                 IF FS1 NOT = ZEROS AND FS NOT = 10
+                     DISPLAY 'ERROR READING'
+                     STOP RUN
+                 END-IF
+                 MOVE E-CODE-PRDT2 TO CODE-TMP2
+             END-IF.
+        ECRITURE.
+             DISPLAY ENT-OUTPUT
+             IF FIN-ALL-FILE < 8
+                 WRITE ENT-OUTPUT
+             END-IF
+             .
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'FIN'
+             CLOSE FINPUT1
+             CLOSE FINPUT2
+             CLOSE FOUTPUT.
+ MEMBER NAME  A05P12
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P12.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT1  ASSIGN TO DDINPUT1
+                   FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT1.
+        01 ENT-INPUT1.
+             05 E-TYPE-ENR      PIC 9.
+             05                 PIC X.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT      PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT       PIC 9(2).
+             05                 PIC X(69).
+        01 ENT-INPUT2.
+             05 E-TYPE-ENR2     PIC 9.
+             05                 PIC X.
+             05 E-CODE-PRDT2    PIC X(4).
+             05                 PIC X.
+             05 E-PRIX          PIC 999V99.
+             05                 PIC X(68).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 K                    PIC 99 VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 E-TYPE-MVT2      PIC X.
+        01 E-CTE-MVT2       PIC 9(2).
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM LECTURE1
+             PERFORM UNTIL FIN-FILE
+                IF E-TYPE-ENR = 2
+                     DISPLAY E-CODE-PRDT2 ' ' E-TYPE-MVT2 ' ' E-CTE-MVT2
+                                                    ' ' E-PRIX
+                ELSE
+                    PERFORM MOVEENR1
+                END-IF
+                PERFORM LECTURE1
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        MOVEENR1.
+             MOVE E-TYPE-MVT TO E-TYPE-MVT2
+             MOVE E-CTE-MVT  TO E-CTE-MVT2.
+        DEBUT.
+             OPEN INPUT FINPUT1
+             SET FILE-READ-OK TO TRUE
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             .
+        LECTURE1.
+             IF NOT FIN-FILE
+                 READ FINPUT1
+                      AT END SET FIN-FILE TO TRUE
+                 END-READ
+                 IF FS NOT = ZEROS AND FS NOT = 10
+                     DISPLAY 'ERROR READING'
+                     STOP RUN
+                 END-IF
+             END-IF.
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'FIN'
+             CLOSE FINPUT1.
+ MEMBER NAME  A05P13
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P13.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT1  ASSIGN TO DDINPUT1
+                   FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT1.
+        01 ENR1 PIC X(80).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 ENT-INPUT1.
+             05 E-TYPE-ENR      PIC 9.
+             05                 PIC X.
+             05 E-CODE-PRDT     PIC X(4).
+             05                 PIC X.
+             05 E-DIFF.
+                 10 E-TYPE-MVT      PIC X.
+                 10                 PIC X.
+                 10 E-CTE-MVT       PIC 9(2).
+                 10                 PIC X(69).
+             05 REDEFINES E-DIFF.
+                 10 E-PRIX          PIC 999V99.
+                 10                 PIC X(68).
+         01 E-TYPE-MVT99        PIC X.
+         01 E-CTE-MVT99         PIC 99.
+         01 TAB-DISPLAY.
+             05 E-CODE-PRDT2    PIC X(4).
+             05                 PIC X.
+             05 E-TYPE-MVT2     PIC X.
+             05                 PIC X.
+             05 E-CTE-MVT2      PIC 9(2).
+             05                 PIC X.
+             05 E-PRIX2         PIC 999.99.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM LECTURE1
+             PERFORM UNTIL FIN-FILE
+                IF E-TYPE-ENR = 2
+                     MOVE E-PRIX TO E-PRIX2
+                     DISPLAY TAB-DISPLAY
+                ELSE
+                     PERFORM MOVEENR1
+                END-IF
+                PERFORM LECTURE1
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        MOVEENR1.
+             MOVE E-CODE-PRDT TO E-CODE-PRDT2
+             MOVE E-TYPE-MVT TO E-TYPE-MVT2
+             MOVE E-CTE-MVT  TO E-CTE-MVT2.
+        DEBUT.
+             OPEN INPUT FINPUT1
+             SET FILE-READ-OK TO TRUE
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             .
+        LECTURE1.
+             READ FINPUT1 INTO ENT-INPUT1
+                  AT END SET FIN-FILE TO TRUE
+             END-READ
+       *     DISPLAY ENT-INPUT1
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF
+             .
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'FIN'
+             CLOSE FINPUT1.
+ MEMBER NAME  A05SP2
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP2.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01  Z2-SP2.
+       * DATE 1 AAAAMMJJ
+            05 Z2-DATE1        PIC 9(8).
+       * DATE 2 AAAAMMJJ
+            05 Z2-DATE2        PIC 9(8).
+       * CODE RETOUR : 0 = OK, 1 = ERREUR
+            05 Z2-CODRET       PIC 9.
+       * NB JOURS ENTRE DATE1 ET DATE2
+            05 Z2-NBJOURS      PIC 9(5).
+        PROCEDURE DIVISION USING Z2-SP2.
+            IF Z2-DATE1 IS NUMERIC AND Z2-DATE2 IS NUMERIC
+                 MOVE 0 TO Z2-CODRET
+                 COMPUTE Z2-NBJOURS =
+                     FUNCTION INTEGER-OF-DATE (Z2-DATE1) -
+                     FUNCTION INTEGER-OF-DATE (Z2-DATE2)
+
+            ELSE
+                 MOVE 1 TO Z2-CODRET
+            END-IF
+            GOBACK.
+ MEMBER NAME  A05P14
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P14.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+       *****************************************************************
+       *
+        01  Z-SP1.
+             05 Z-CHOIX        PIC 9.
+       * 1 = DEMANDE DATE DU JOUR
+             05 Z-CODRET       PIC 9.
+       * 0 = OK, 1 = ERREUR
+             05 Z-DATEJOUR     PIC X(8).
+       * FORMAT AAAAMMJJ, BLANC SI CODE RETOUR = 1
+        01  Z2-SP2.
+       * DATE 1 AAAAMMJJ
+            05 Z2-DATE1        PIC 9(8).
+       * DATE 2 AAAAMMJJ
+            05 Z2-DATE2        PIC 9(8).
+       * CODE RETOUR : 0 = OK, 1 = ERREUR
+            05 Z2-CODRET       PIC 9.
+       * NB JOURS ENTRE DATE1 ET DATE2
+            05 Z2-NBJOURS      PIC 9(5).
+        PROCEDURE DIVISION.
+            MOVE 1 TO Z-CHOIX
+            CALL 'A99SP1' USING Z-SP1
+            DISPLAY 'CODE RETOUR : ' Z-CODRET
+            IF Z-CODRET = 0
+                DISPLAY Z-DATEJOUR
+            ELSE
+                DISPLAY SPACES
+            END-IF
+
+            DISPLAY SPACES
+            MOVE 20230506 TO Z2-DATE1
+            MOVE 20230306 TO Z2-DATE2
+            CALL 'A05SP2' USING Z2-SP2
+            DISPLAY 'CODE RETOUR : ' Z2-CODRET
+            IF Z2-CODRET = 0
+               DISPLAY Z2-NBJOURS
+            ELSE
+               DISPLAY SPACES
+            END-IF
+            STOP RUN.
+ MEMBER NAME  A05P6C
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P6C.
+        AUTHOR. FORA06.
+        DATE-WRITTEN. 2023/12/01.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FICENT ASSIGN TO DDINPUT
+                  FILE STATUS IS FS1.
+
+        DATA DIVISION.
+        FILE SECTION.
+        FD  FICENT
+            RECORDING MODE IS F.
+        01 E-FICENT                  PIC X(80).
+
+        WORKING-STORAGE SECTION.
+       * DESCRIPTION DU FICENT
+        01 WS-E-FICENT.
+            05  WS-E-CODE-PRDT       PIC X(4).
+            05                       PIC X(1).
+            05  WS-E-TYPE-MVT        PIC X(1).
+            05                       PIC X(1).
+            05  WS-E-QTE-MVT         PIC 9(2).
+            05                       PIC X(71).
+        01 TAB.
+            05 POSTE    OCCURS 10.
+                10  ENR-CODE-PRDT    PIC X(4)      VALUE SPACES.
+                10  ENR-TYPE-MVT     PIC X(1)      VALUE SPACES.
+                10  ENR-QTE-MVT      PIC S9(2)      VALUE ZEROES.
+                10  ENR-QTE-TOT      PIC 9(5)      VALUE ZEROES.
+        01 ENR-QTE-MVT-ED            PIC +99    VALUE ZEROES.
+       * DEFINIR LES FILE STATUS
+        01 FS1                       PIC 99        VALUE ZEROES.
+       * LES COMPTEURS
+        01 CPT-LU                    PIC 99        VALUE ZEROES.
+        01 CPT-RUP                   PIC 99        VALUE ZEROES.
+       * INDICE DU TABLEAU
+        01 I                      PIC 9         VALUE 1.
+        01 J                      PIC 9         VALUE 1.
+        01 CODE-AVANT             PIC X(4)      VALUE SPACES.
+       * INDICATEURS
+        77 IND-FIN-FIC            PIC X         VALUE ZEROES.
+           88 FIN-FIC                           VALUE 'F'.
+
+        PROCEDURE DIVISION.
+             PERFORM DEBUT
+             PERFORM UNTIL FIN-FIC
+                PERFORM TRAIT-RUP
+                PERFORM LECTURE-FICENT
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+
+        DEBUT.
+       * VERIFIER L'OUVERTURE DU FICHIER ENTREE ET SORTIE
+            OPEN INPUT FICENT
+            IF FS1 NOT = ZEROS
+               DISPLAY 'ERREUR OUVERTURE DU FICHIER FICENT: ' FS1
+               STOP RUN
+            END-IF
+
+            PERFORM LECTURE-FICENT
+            IF FS1 = 10
+               DISPLAY 'FICHIER VIDE|'
+               PERFORM FIN-ERREUR
+            END-IF
+
+       *    MOVE WS-E-CODE-PRDT TO CODE-AVANT
+            MOVE ZEROS TO I
+            .
+
+        TRAIT-RUP.
+       * INITIALISER LES VARIABLES
+       * COMME SI ON EST TOUJOURS EN RUPTURE
+       * ON EST EN RUPTURE, ET ON LIT LE MêME CODE PRODUIT
+       * ON ARRETE QUAND LE CODE PRODUIT CHANGE
+            IF WS-E-CODE-PRDT = CODE-AVANT
+               ADD 1 TO CPT-RUP
+            ELSE
+               ADD 1 TO I
+       *       DISPLAY 'INIT ' WS-E-CODE-PRDT
+               MOVE 0 TO ENR-QTE-MVT(I)
+               ADD 1 TO CPT-RUP
+               MOVE WS-E-CODE-PRDT TO ENR-CODE-PRDT(I)
+       *       MOVE WS-E-QTE-MVT TO ENR-QTE-MVT(I)
+       *       DISPLAY 'ENR-CODE : ' ENR-CODE-PRDT(I) ': '
+       *              CPT-RUP
+               MOVE ZEROS TO CPT-RUP
+            END-IF
+
+             PERFORM CAL-QTE
+       **   IF FIN-FIC
+       **     ADD 1 TO I
+       **     MOVE WS-E-CODE-PRDT TO ENR-CODE-PRDT(I)
+       **     DISPLAY 'ENR-CODE : ' ENR-CODE-PRDT(I) ': ' CPT-RUP
+       **   END-IF
+             MOVE WS-E-CODE-PRDT TO CODE-AVANT
+            .
+
+        CAL-QTE.
+            EVALUATE WS-E-TYPE-MVT
+               WHEN 'E'
+                  ADD WS-E-QTE-MVT TO ENR-QTE-MVT(I)
+       **         DISPLAY 'ADD' WS-E-CODE-PRDT '-' ENR-QTE-MVT(I)'-'
+       **          WS-E-QTE-MVT
+               WHEN 'S'
+                  SUBTRACT WS-E-QTE-MVT FROM ENR-QTE-MVT(I)
+       **         DISPLAY 'MIN' WS-E-CODE-PRDT '-' ENR-QTE-MVT(I)'-'
+       *           WS-E-QTE-MVT
+            END-EVALUATE
+            .
+
+        LECTURE-FICENT.
+            READ FICENT   INTO WS-E-FICENT
+               AT END     SET FIN-FIC TO TRUE
+               NOT AT END ADD 1 TO CPT-LU
+            END-READ
+            IF FS1 NOT = ZEROES AND 10
+               DISPLAY 'ERREUR READ FMTVS : ' FS1
+               PERFORM FIN-ERREUR
+            END-IF.
+
+        FIN-ERREUR.
+            MOVE 99 TO RETURN-CODE
+            CLOSE FICENT
+            STOP RUN.
+
+        FIN.
+            DISPLAY 'FIN EN ATTEINTE'
+            DISPLAY 'NB ENR LUS : ' CPT-LU
+            DISPLAY 'CPT-EC : ' I
+            PERFORM VARYING J FROM 1 BY 1 UNTIL J > I
+               IF ENR-QTE-MVT(J) > 0
+                  MOVE 'E' TO ENR-TYPE-MVT(J)
+               ELSE
+                  MOVE 'S' TO ENR-TYPE-MVT(J)
+               END-IF
+               MOVE ENR-QTE-MVT(J) TO ENR-QTE-MVT-ED
+               DISPLAY ENR-CODE-PRDT(J) '-' ENR-TYPE-MVT(J)
+                ' '  ENR-QTE-MVT-ED
+            END-PERFORM
+            CLOSE FICENT.
+ MEMBER NAME  A05P15
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P15.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS ASSIGN TO DDINPUT
+            ORGANIZATION IS INDEXED
+            RECORD KEY IS E-CODE-PRDT
+            ACCESS MODE IS RANDOM
+            FILE STATUS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR.
+            05 E-CODE-PRDT    PIC X(4).
+            05                PIC X.
+            05 E-TYPE-MVT     PIC X.
+            05                PIC X.
+            05 E-CTE-MVT      PIC 99.
+            05                PIC X.
+            05 E-PRIX         PIC 999V99.
+            05                PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                 PIC 99.
+        PROCEDURE DIVISION.
+            PERFORM DEBUT
+            ACCEPT E-CODE-PRDT
+            PERFORM UNTIL E-CODE-PRDT = 'FIN'
+                 PERFORM LECTURE
+                 ACCEPT E-CODE-PRDT
+            END-PERFORM
+       *    MOVE 'A106' TO E-CODE-PRDT
+       *     MOVE 'A006' TO E-CODE-PRDT
+       *     PERFORM LECTURE
+            PERFORM FIN
+            STOP RUN.
+        DEBUT.
+            OPEN INPUT FKSDS
+            IF FS NOT = ZEROS
+                 DISPLAY 'ERROR OPEN'
+                 STOP RUN
+            END-IF.
+        LECTURE.
+            READ FKSDS
+                  INVALID KEY DISPLAY 'KEY NOT IN FILE - ' E-CODE-PRDT
+                  NOT INVALID KEY
+                      DISPLAY  ENR
+            END-READ.
+        FIN.
+            CLOSE FKSDS
+            .
+ MEMBER NAME  A05SP3
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP3.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS ASSIGN TO DDINPUT
+            ORGANIZATION IS INDEXED
+            RECORD KEY IS E-CODE-PRDT
+            ACCESS MODE IS RANDOM
+            FILE STATUS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR.
+            05 E-CODE-PRDT    PIC X(4).
+            05                PIC X.
+            05 E-TYPE-MVT     PIC X.
+            05                PIC X.
+            05 E-CTE-MVT      PIC 99.
+            05                PIC X.
+            05 E-PRIX         PIC 999V99.
+            05                PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                 PIC 99.
+        LINKAGE SECTION.
+        01  Z3-SP3.
+            05 Z3-CODE-PRDT          PIC X(4).
+            05 Z3-CODRET             PIC X.
+            05 Z3-ENR                PIC X(80).
+        PROCEDURE DIVISION USING Z3-SP3.
+            PERFORM DEBUT
+            PERFORM LECTURE
+            PERFORM FIN
+            GOBACK.
+        DEBUT.
+            OPEN INPUT FKSDS
+            IF FS NOT = ZEROS
+                 MOVE 9 TO Z3-CODRET
+                 GOBACK
+            END-IF.
+        LECTURE.
+            MOVE Z3-CODE-PRDT TO E-CODE-PRDT
+            READ FKSDS
+                  INVALID KEY MOVE 1 TO Z3-CODRET
+                  NOT INVALID KEY
+                      MOVE ENR TO Z3-ENR
+                      MOVE 0 TO Z3-CODRET
+            END-READ.
+        FIN.
+            CLOSE FKSDS
+            .
+ MEMBER NAME  A05P16
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P16.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01  Z3-SP3.
+            05 Z3-CODE-PRDT          PIC X(4).
+            05 Z3-CODRET             PIC X.
+            05 Z3-ENR                PIC X(80).
+        PROCEDURE DIVISION.
+            ACCEPT Z3-CODE-PRDT
+            PERFORM UNTIL Z3-CODE-PRDT = 'FIN'
+                 CALL 'A05SP3' USING Z3-SP3
+                 EVALUATE Z3-CODRET
+                      WHEN 0 DISPLAY Z3-ENR
+                      WHEN 1 DISPLAY 'KEY NOT FOUND - ' Z3-CODE-PRDT
+                      WHEN OTHER DISPLAY 'ERROR' Z3-CODRET
+                 END-EVALUATE
+                 ACCEPT Z3-CODE-PRDT
+            END-PERFORM
+            STOP RUN.
+ MEMBER NAME  A05P17
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P17.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01  Z4-SP4.
+            05 Z4-CODRET             PIC X.
+            05 Z4-ENR.
+                 10 Z4-CODE-PRDT PIC X(4).
+                 10 Z4-TYPE-MVT  PIC X.
+                 10 Z4-QTE-MVT   PIC 99.
+                 10 Z4-PRIX      PIC 999V99.
+        PROCEDURE DIVISION.
+            ACCEPT Z4-ENR
+            PERFORM UNTIL Z4-ENR = 'FIN'
+            DISPLAY Z4-ENR
+                 CALL 'A05SP4' USING Z4-SP4
+                 EVALUATE Z4-CODRET
+                      WHEN 0 DISPLAY 'WRITE OK'
+                      WHEN 1 DISPLAY 'KEY DOUBLE - ' Z4-CODE-PRDT
+                      WHEN OTHER DISPLAY 'ERROR' Z4-CODRET
+                 END-EVALUATE
+                 ACCEPT Z4-ENR
+            END-PERFORM
+            STOP RUN.
+ MEMBER NAME  A05SP4
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP4.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS ASSIGN TO DDINPUT
+            ORGANIZATION IS INDEXED
+            RECORD KEY IS E-CODE-PRDT
+            ACCESS MODE IS RANDOM
+            FILE STATUS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR.
+            05 E-CODE-PRDT    PIC X(4).
+            05                PIC X.
+            05 E-TYPE-MVT     PIC X.
+            05                PIC X.
+            05 E-CTE-MVT      PIC 99.
+            05                PIC X.
+            05 E-PRIX         PIC 999V99.
+            05                PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                 PIC 99.
+        LINKAGE SECTION.
+        01  Z4-SP4.
+            05 Z4-CODRET             PIC X.
+            05 Z4-ENR.
+                 10 Z4-CODE-PRDT PIC X(4).
+                 10 Z4-TYPE-MVT  PIC X.
+                 10 Z4-QTE-MVT   PIC 99.
+                 10 Z4-PRIX      PIC 999V99.
+        PROCEDURE DIVISION USING Z4-SP4.
+            PERFORM DEBUT
+            PERFORM ECRITURE
+            PERFORM FIN
+            GOBACK.
+        DEBUT.
+            OPEN I-O FKSDS
+            IF FS NOT = ZEROS
+                 MOVE 9 TO Z4-CODRET
+                 GOBACK
+            END-IF.
+        ECRITURE.
+            MOVE SPACES TO ENR
+            MOVE Z4-CODE-PRDT TO E-CODE-PRDT
+            MOVE Z4-TYPE-MVT  TO E-TYPE-MVT
+            MOVE Z4-QTE-MVT   TO E-CTE-MVT
+            MOVE Z4-PRIX      TO E-PRIX
+            REWRITE ENR
+                  INVALID KEY MOVE 1 TO Z4-CODRET
+                  NOT INVALID KEY
+                      MOVE 0 TO Z4-CODRET
+            END-REWRITE.
+        LECTURE.
+            MOVE Z4-CODE-PRDT TO E-CODE-PRDT
+            READ FKSDS
+                  INVALID KEY MOVE 1 TO Z4-CODRET
+                  NOT INVALID KEY
+                      MOVE ENR TO Z4-ENR
+                      MOVE 0 TO Z4-CODRET
+            END-READ.
+        FIN.
+            CLOSE FKSDS
+            .
+ MEMBER NAME  A05SP5
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP5.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS ASSIGN TO DDINPUT
+            ORGANIZATION IS INDEXED
+            RECORD KEY IS E-CODE-PRDT
+            ACCESS MODE IS RANDOM
+            FILE STATUS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR.
+            05 E-CODE-PRDT    PIC X(4).
+            05                PIC X.
+            05 E-TYPE-MVT     PIC X.
+            05                PIC X.
+            05 E-CTE-MVT      PIC 99.
+            05                PIC X.
+            05 E-PRIX         PIC 999V99.
+            05                PIC X(65).
+        WORKING-STORAGE SECTION.
+        01 FS                 PIC 99.
+        LINKAGE SECTION.
+        01  Z5-SP5.
+            05 Z5-CODE-FONCTION      PIC X.
+               88 LECTURE            VALUE 'L'.
+               88 CREATION           VALUE 'C'.
+               88 MODIFICATION       VALUE 'M'.
+               88 SUPPRESSION        VALUE 'S'.
+            05 Z5-CODRET             PIC X.
+               88 CORRECT            VALUE ZEROES.
+               88 NON-TROUVE         VALUE '1'.
+               88 EN-DOUBLE          VALUE '2'.
+               88 ERREUR             VALUE '9'.
+            05 Z5-ENR.
+               10 Z5-CODE-PRDT       PIC X(4).
+               10 Z5-TYPE-MVT        PIC X.
+               10 Z5-QTE-MVT         PIC 99.
+               10 Z5-PRIX            PIC 999V99.
+        PROCEDURE DIVISION USING Z5-SP5.
+            PERFORM DEBUT
+            EVALUATE Z5-CODE-FONCTION
+                WHEN 'C' PERFORM ECRITURE
+                WHEN 'M' PERFORM REECRITURE
+                WHEN 'L' PERFORM LECTURE-FILE
+                WHEN 'S' PERFORM SUPPRESSION-FILE
+                WHEN OTHER PERFORM NOFONCTION
+            END-EVALUATE
+       *    EVALUATE TRUE
+       *        WHEN CREATION     PERFORM ECRITURE
+       *        WHEN MODIFICATION PERFORM REECRITURE
+       *        WHEN LECTURE      PERFORM LECTURE-FILE
+       *        WHEN SUPPRESSION  PERFORM SUPPRESSION-FILE
+       *        WHEN OTHER        PERFORM NOFONCTION
+       *    END-EVALUATE
+            PERFORM FIN
+            GOBACK.
+        DEBUT.
+            OPEN I-O FKSDS
+            IF FS NOT = ZEROS
+                 MOVE 9 TO Z5-CODRET
+                 GOBACK
+            END-IF.
+        REECRITURE.
+            MOVE SPACES TO ENR
+            MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+            MOVE Z5-TYPE-MVT  TO E-TYPE-MVT
+            MOVE Z5-QTE-MVT   TO E-CTE-MVT
+            MOVE Z5-PRIX      TO E-PRIX
+            REWRITE ENR
+                  INVALID KEY MOVE 2 TO Z5-CODRET
+                  NOT INVALID KEY
+                      MOVE 0 TO Z5-CODRET
+            END-REWRITE.
+        ECRITURE.
+            MOVE SPACES TO ENR
+            MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+            MOVE Z5-TYPE-MVT  TO E-TYPE-MVT
+            MOVE Z5-QTE-MVT   TO E-CTE-MVT
+            MOVE Z5-PRIX      TO E-PRIX
+            WRITE ENR
+                  INVALID KEY MOVE 1 TO Z5-CODRET
+                  NOT INVALID KEY
+                      MOVE 0 TO Z5-CODRET
+            END-WRITE.
+        LECTURE-FILE.
+            MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+            READ FKSDS
+                  INVALID KEY MOVE 1 TO Z5-CODRET
+                  NOT INVALID KEY
+                      MOVE ENR TO Z5-ENR
+                      MOVE 0 TO Z5-CODRET
+            END-READ.
+        SUPPRESSION-FILE.
+            MOVE Z5-CODE-PRDT TO E-CODE-PRDT
+            DELETE FKSDS
+                  INVALID KEY MOVE 1 TO Z5-CODRET
+                  NOT INVALID KEY
+                      MOVE 0 TO Z5-CODRET
+            END-DELETE.
+        NOFONCTION.
+            MOVE 9 TO Z5-CODRET
+            .
+        FIN.
+            CLOSE FKSDS
+            .
+ MEMBER NAME  A05AMAP
+ A05AMAP DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,EXTATT=YES,         X
+                CTRL=(FREEKB,FRSET),STORAGE=AUTO,TIOAPFX=YES
+ A05AMAP DFHMDI COLUMN=1,LINE=1,SIZE=(24,80)
+         DFHMDF POS=(1,1),ATTRB=ASKIP,LENGTH=04,INITIAL='A05A'
+         DFHMDF POS=(1,23),ATTRB=ASKIP,LENGTH=26,                       X
+                INITIAL='GESTION DU FICHIER PRODUIT'
+         DFHMDF POS=(1,65),ATTRB=ASKIP,LENGTH=07,INITIAL='A05AMAP'
+         DFHMDF POS=(2,60),ATTRB=ASKIP,LENGTH=06,INITIAL='DATE :'
+ DATEJ   DFHMDF POS=(2,67),ATTRB=(ASKIP,FSET,NORM),LENGTH=10
+         DFHMDF POS=(8,13),ATTRB=(ASKIP,BRT),LENGTH=01,INITIAL='1'
+         DFHMDF POS=(8,15),ATTRB=ASKIP,LENGTH=40,                       X
+                INITIAL='- CREATION D''UN PRODUIT'
+         DFHMDF POS=(10,13),ATTRB=(ASKIP,BRT),LENGTH=01,INITIAL='2'
+         DFHMDF POS=(10,15),ATTRB=ASKIP,LENGTH=40,                      X
+                INITIAL='- INTERROGATION D''UN PRODUIT'
+         DFHMDF POS=(12,13),ATTRB=(ASKIP,BRT),LENGTH=01,INITIAL='3'
+         DFHMDF POS=(12,15),ATTRB=ASKIP,LENGTH=40,                      X
+                INITIAL='- MODIFICATION D''UN PRODUIT'
+         DFHMDF POS=(14,13),ATTRB=(ASKIP,BRT),LENGTH=01,INITIAL='4'
+         DFHMDF POS=(14,15),ATTRB=ASKIP,LENGTH=40,                      X
+                INITIAL='- SUPPRESSION D''UN PRODUIT'
+         DFHMDF POS=(17,25),ATTRB=ASKIP,LENGTH=13,                      X
+                INITIAL='VOTRE CHOIX :'
+ CHOIX   DFHMDF POS=(17,39),ATTRB=(UNPROT,NUM,IC,FSET),LENGTH=01,       X
+                JUSTIFY=(RIGHT,ZERO)
+         DFHMDF POS=(17,41),ATTRB=ASKIP,LENGTH=1
+         DFHMDF POS=(23,1),ATTRB=ASKIP,LENGTH=11,INITIAL='CLEAR - FIN'
+ MSG     DFHMDF POS=(24,1),ATTRB=(ASKIP,BRT),LENGTH=79
+         DFHMSD TYPE=FINAL
+         END
+ MEMBER NAME  A05BMAP
+ A05BMAP DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,EXTATT=YES,         X
+                CTRL=(FREEKB,FRSET),STORAGE=AUTO,TIOAPFX=YES
+ A05BMAP DFHMDI COLUMN=1,LINE=1,SIZE=(24,80)
+         DFHMDF POS=(1,1),ATTRB=ASKIP,LENGTH=04,INITIAL='A05B'
+         DFHMDF POS=(1,23),ATTRB=ASKIP,LENGTH=26,                       X
+                INITIAL='INTERROGATION D''UN PRODUIT'
+         DFHMDF POS=(1,65),ATTRB=ASKIP,LENGTH=07,INITIAL='A05BMAP'
+         DFHMDF POS=(2,59),ATTRB=ASKIP,LENGTH=6,INITIAL='DATE :'
+ DATEJ   DFHMDF POS=(2,66),ATTRB=(ASKIP,FSET),LENGTH=10
+         DFHMDF POS=(8,15),ATTRB=ASKIP,LENGTH=22,                       X
+                INITIAL='CODE PRODUIT         :'
+ CDPRDT  DFHMDF POS=(8,38),ATTRB=(UNPROT,FSET,IC),LENGTH=4
+         DFHMDF POS=(8,43),ATTRB=ASKIP,LENGTH=1
+         DFHMDF POS=(10,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='TYPE MOUVEMENT       :'
+ TYPMVT  DFHMDF POS=(10,38),ATTRB=(PROT,FSET),LENGTH=1
+         DFHMDF POS=(12,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='QUANTITE             :'
+ QTEMVT  DFHMDF POS=(12,38),ATTRB=(PROT,FSET),LENGTH=2
+         DFHMDF POS=(14,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='PRIX UNITAIRE        :'
+ PRIX    DFHMDF POS=(14,38),ATTRB=(PROT,FSET),LENGTH=6
+         DFHMDF POS=(23,1),ATTRB=ASKIP,LENGTH=11,INITIAL='CLEAR - FIN'
+ MSG     DFHMDF POS=(24,1),ATTRB=(ASKIP,BRT),LENGTH=79
+         DFHMSD TYPE=FINAL
+         END
+ MEMBER NAME  A05CMAP
+ A05CMAP DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,EXTATT=YES,         X
+                CTRL=(FREEKB,FRSET),STORAGE=AUTO,TIOAPFX=YES
+ A05CMAP DFHMDI COLUMN=1,LINE=1,SIZE=(24,80)
+         DFHMDF POS=(1,1),ATTRB=ASKIP,LENGTH=04,INITIAL='A05C'
+         DFHMDF POS=(1,23),ATTRB=ASKIP,LENGTH=26,                       X
+                INITIAL='CREATION D''UN PRODUIT'
+         DFHMDF POS=(1,65),ATTRB=ASKIP,LENGTH=07,INITIAL='A05CMAP'
+         DFHMDF POS=(2,59),ATTRB=ASKIP,LENGTH=6,INITIAL='DATE :'
+ DATEJ   DFHMDF POS=(2,66),ATTRB=(ASKIP,FSET),LENGTH=10
+         DFHMDF POS=(8,15),ATTRB=ASKIP,LENGTH=22,                       X
+                INITIAL='CODE PRODUIT         :'
+ CDPRDT  DFHMDF POS=(8,38),ATTRB=(UNPROT,FSET,IC),LENGTH=4
+         DFHMDF POS=(8,43),ATTRB=ASKIP
+         DFHMDF POS=(10,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='TYPE MOUVEMENT       :'
+ TYPMVT  DFHMDF POS=(10,38),ATTRB=(UNPROT,FSET),LENGTH=1
+         DFHMDF POS=(10,40),ATTRB=ASKIP
+         DFHMDF POS=(12,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='QUANTITE             :'
+ QTEMVT  DFHMDF POS=(12,38),ATTRB=(UNPROT,FSET),LENGTH=2
+         DFHMDF POS=(12,41),ATTRB=ASKIP
+         DFHMDF POS=(14,15),ATTRB=ASKIP,LENGTH=22,                      X
+                INITIAL='PRIX UNITAIRE        :'
+ PRIXENT DFHMDF POS=(14,38),ATTRB=(UNPROT,FSET),LENGTH=3
+         DFHMDF POS=(14,42),ATTRB=ASKIP,LENGTH=1,INITIAL=','
+ PRIXDEC DFHMDF POS=(14,44),ATTRB=(UNPROT,FSET),LENGTH=2
+         DFHMDF POS=(14,47),ATTRB=ASKIP
+         DFHMDF POS=(23,1),ATTRB=ASKIP,LENGTH=11,INITIAL='CLEAR - FIN'
+         DFHMDF POS=(23,18),ATTRB=ASKIP,LENGTH=12,INITIAL='PF3 - RETOUR'
+ MSG     DFHMDF POS=(24,1),ATTRB=(ASKIP,BRT),LENGTH=79
+         DFHMSD TYPE=FINAL
+         END
+ MEMBER NAME  A05APGMT
+       *======================================================*
+       *   MENU DE GESTION DES PRODUITS                       *
+       *======================================================*
+
+       *======================================================*
+       *   I D E N T I F I C A T I O N     D I V I S I O N    *
+       *======================================================*
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05APGMT.
+
+       *======================================================*
+       *   E N V I R O N M E N T       D I V I S I O N        *
+       *======================================================*
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-390.
+        OBJECT-COMPUTER. IBM-390.
+
+       *======================================================*
+       *           D A T A         D I V I S I O N            *
+       *======================================================*
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+
+       * ZONE POUR DATE DU JOUR
+        01  WS-DATEJ               PIC X(8) VALUE SPACES.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION DETAILLEE DE LA ZONE DE COMMUNICATION  *
+       *------------------------------------------------------*
+        01  WS-COMMAREA.
+            05 PROG-PRECEDENT      PIC X(8).
+            05 PROG-COURANT        PIC X(8).
+            05 PROG-SUIVANT        PIC X(8).
+            05                     PIC X(26).
+
+        01 C-R                     PIC S9(8) COMP.
+
+        01 MON-PROG                PIC X(8) VALUE 'A05APGMT'.
+        01 MA-MAP                  PIC X(8) VALUE 'A05AMAP '.
+        01 MA-TRX                  PIC X(4) VALUE 'A05A'.
+       *------------------------------------------------------*
+       *   DESCRIPTION   DE   LA   MAP                        *
+       *------------------------------------------------------*
+        COPY A05AMAP.
+
+       *------------------------------------------------------*
+       *   ZONE DE MESSAGE TAMPON POUR LE SEND FROM           *
+       *------------------------------------------------------*
+        01  MESSAGE-TXT            PIC X(79).
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  TOUCHES   FONCTIONS             *
+       *------------------------------------------------------*
+        COPY DFHAID.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  ATTRIBUTS                       *
+       *------------------------------------------------------*
+        COPY DFHBMSCA.
+
+       *======================================================*
+       *          L I N K A G E     S E C T I O N             *
+       *======================================================*
+        LINKAGE SECTION.
+        01  DFHCOMMAREA.
+            05 LK-COMMAREA            PIC X(50).
+
+       *======================================================*
+       *     P R O C E D U R E     D I V I S I O N            *
+       *======================================================*
+
+        PROCEDURE DIVISION.
+        00000-INIT-PROGRAMME.
+       *---------------------*
+             PERFORM  10000-DEBUT-PROGRAMME
+             PERFORM  20000-TRAIT-PROGRAMME
+             GOBACK
+             .
+
+        10000-DEBUT-PROGRAMME.
+       *---------------------*
+       *   TEST DE PREMIERE ENTREE DANS LE PROGRAMME
+       *   SI NON PROGRAMME  MENU --->  ARRET  (ACCES INTERDIT)
+            IF EIBCALEN = 0
+               INITIALIZE      WS-COMMAREA
+            ELSE
+               MOVE LK-COMMAREA    TO  WS-COMMAREA
+            END-IF
+
+            MOVE  PROG-COURANT     TO  PROG-PRECEDENT
+            MOVE  MON-PROG         TO  PROG-COURANT
+            .
+
+        20000-TRAIT-PROGRAMME.
+       *---------------------*
+            IF PROG-PRECEDENT  NOT =  PROG-COURANT
+               PERFORM  21000-TRAIT-CHARGEMENT
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+               PERFORM  23000-TRAIT-RECEPTION
+            END-IF
+            .
+
+        21000-TRAIT-CHARGEMENT.
+       *----------------------*
+       *  CHARGEMENT DE LA MAP AVANT AFFICHAGE
+            MOVE LOW-VALUE TO A05AMAPO
+
+       *  SI TRAITEMENT PARTICULIER AVANT AFFICHAGE
+       *    PERFORM  21100-TRAIT-SPECIFIQUE
+            .
+
+       *21100-TRAIT-SPECIFIQUE.
+       *----------------------*
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    .
+
+        22000-TRAIT-ENVOI.
+       *-----------------*
+       * AFFICHAGE DE LA DATE DU JOUR
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            END-STRING
+
+            EXEC CICS SEND MAP    ('A05AMAP')
+                           ERASE
+            END-EXEC
+
+            MOVE PROG-COURANT TO PROG-SUIVANT
+
+            EXEC CICS RETURN TRANSID  (MA-TRX)
+                             COMMAREA (WS-COMMAREA)
+                             LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23000-TRAIT-RECEPTION.
+       *---------------------*
+            EVALUATE EIBAID
+               WHEN DFHENTER
+                    PERFORM  23100-TRAIT-ENTER
+               WHEN DFHCLEAR
+                    PERFORM  23200-TRAIT-FIN
+               WHEN OTHER
+                    PERFORM  90000-ERR-TOUCHE
+            END-EVALUATE
+            .
+
+        23110-PROG-SUIVANT.
+       *------------------*
+       *    IF  ......................
+       *       MOVE '?????'   TO  PROG-SUIVANT
+       *    END-IF
+
+            EXEC CICS XCTL  PROGRAM  (PROG-SUIVANT)
+                            COMMAREA (WS-COMMAREA)
+                            LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23100-TRAIT-ENTER.
+       *------------------*
+       *    ..........................
+            EXEC CICS RECEIVE MAP  ('A05AMAP')
+                              RESP (C-R)
+            END-EXEC
+
+            EVALUATE C-R
+               WHEN DFHRESP(NORMAL)
+                    CONTINUE
+       *       WHEN DFHRESP(MAPFAIL)
+       *            .............
+               WHEN OTHER
+                    PERFORM 91000-ERREUR-CICS
+            END-EVALUATE
+
+       *    ............................
+       *    ...  ANALYSE DES CHAMPS  ...
+       *    ............................
+            EVALUATE CHOIXI
+               WHEN '2'
+                 MOVE 'A05BPGMT' TO PROG-SUIVANT
+                 PERFORM 23110-PROG-SUIVANT
+               WHEN '1'
+                 MOVE 'A05CPGMT' TO PROG-SUIVANT
+                 PERFORM 23110-PROG-SUIVANT
+               WHEN '3'
+               WHEN '4'
+                 MOVE 'CHOIX ACTUELLEMENT INDISPONIBLE' TO MSGO
+                 PERFORM  22000-TRAIT-ENVOI
+               WHEN OTHER
+                 MOVE 'CHOIX INVALIDE'                  TO MSGO
+                 PERFORM  22000-TRAIT-ENVOI
+            END-EVALUATE
+            .
+
+        23200-TRAIT-FIN.
+       *---------------*
+            MOVE 'FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        90000-ERR-TOUCHE.
+       *----------------*
+            MOVE 'TOUCHE DE FONCTION INVALIDE' TO MSGO
+            PERFORM  22000-TRAIT-ENVOI
+            .
+
+        91000-ERREUR-CICS.
+       *-------------------*
+            MOVE 'ERREUR CICS !!!  FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        99000-FIN-CICS.
+       *--------------*
+            EXEC CICS SEND FROM   (MESSAGE-TXT)
+                           LENGTH (LENGTH OF MESSAGE-TXT)
+                           ERASE
+            END-EXEC
+
+            EXEC CICS RETURN END-EXEC
+            .
+ MEMBER NAME  A05P18
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P18.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01  Z5-SP5.
+            05 Z5-CODE-FONCTION      PIC X.
+               88 LECTURE            VALUE 'L'.
+               88 CREATION           VALUE 'C'.
+               88 MODIFICATION       VALUE 'M'.
+               88 SUPPRESSION        VALUE 'S'.
+            05 Z5-CODRET             PIC X.
+               88 CORRECT            VALUE ZEROES.
+               88 NON-TROUVE         VALUE '1'.
+               88 EN-DOUBLE          VALUE '2'.
+               88 ERREUR             VALUE '9'.
+            05 Z5-ENR.
+               10 Z5-CODE-PRDT       PIC X(4).
+               10 Z5-TYPE-MVT        PIC X.
+               10 Z5-QTE-MVT         PIC 99.
+               10 Z5-PRIX            PIC 999V99.
+        PROCEDURE DIVISION.
+            SET LECTURE TO TRUE
+            MOVE 'A005' TO Z5-CODE-PRDT
+       *    PERFORM CALL-PRO
+
+            MOVE 'A006' TO Z5-CODE-PRDT
+       *    PERFORM CALL-PRO
+
+            SET MODIFICATION TO TRUE
+            MOVE 'A010E0200500' TO Z5-ENR
+       *    PERFORM CALL-PRO
+
+            SET CREATION TO TRUE
+            MOVE 'A998E0200500' TO Z5-ENR
+       *    PERFORM CALL-PRO
+
+            SET CREATION TO TRUE
+            MOVE 'A999E0200500' TO Z5-ENR
+       *    PERFORM CALL-PRO
+
+            SET SUPPRESSION TO TRUE
+            MOVE 'D120' TO Z5-ENR
+            PERFORM CALL-PRO
+
+            SET SUPPRESSION TO TRUE
+            MOVE 'A999' TO Z5-ENR
+       *    PERFORM CALL-PRO
+
+            STOP RUN.
+        CALL-PRO.
+            CALL 'A05SP5' USING Z5-SP5
+            EVALUATE Z5-CODRET
+                 WHEN 0 DISPLAY Z5-CODE-FONCTION ' OK ' Z5-ENR
+                 WHEN 1 DISPLAY 'KEY NOT FOUND - ' Z5-CODE-PRDT
+                 WHEN 2 DISPLAY 'KEY DOUBLE - ' Z5-CODE-PRDT
+                 WHEN OTHER DISPLAY 'ERROR' Z5-CODRET
+            END-EVALUATE.
+ MEMBER NAME  A05BPGMT
+       *======================================================*
+       *   MENU DE GESTION DES PRODUITS                       *
+       *======================================================*
+
+       *======================================================*
+       *   I D E N T I F I C A T I O N     D I V I S I O N    *
+       *======================================================*
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05BPGMT.
+
+       *======================================================*
+       *   E N V I R O N M E N T       D I V I S I O N        *
+       *======================================================*
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-390.
+        OBJECT-COMPUTER. IBM-390.
+
+       *======================================================*
+       *           D A T A         D I V I S I O N            *
+       *======================================================*
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+
+       * ZONE POUR DATE DU JOUR
+        01  WS-DATEJ               PIC X(8) VALUE SPACES.
+
+       * DESCRIPTION DE L'ENREGISTREMENT
+        01  ENR1.
+            05 ENR1-CODE-PRDT      PIC X(4).
+            05                     PIC X.
+            05 ENR1-TYPE-MVT       PIC X.
+            05                     PIC X.
+            05 ENR1-QTE-MVT        PIC 99.
+            05                     PIC X.
+            05 ENR1-PRIX           PIC 9(3)V99.
+            05                     PIC X(65).
+
+       * PICTURE D'EDITION POUR LE PRIX
+        01  WS-PRIX-X.
+            05 WS-PRIX-ED          PIC ZZ9,99.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION DETAILLEE DE LA ZONE DE COMMUNICATION  *
+       *------------------------------------------------------*
+        01  WS-COMMAREA.
+            05 PROG-PRECEDENT      PIC X(8).
+            05 PROG-COURANT        PIC X(8).
+            05 PROG-SUIVANT        PIC X(8).
+            05                     PIC X(26).
+
+        01 C-R                     PIC S9(8) COMP.
+
+        01 MON-PROG                PIC X(8) VALUE 'A05BPGMT'.
+        01 MA-MAP                  PIC X(8) VALUE 'A05BMAP '.
+        01 MA-TRX                  PIC X(4) VALUE 'A05B'.
+       *------------------------------------------------------*
+       *   DESCRIPTION   DE   LA   MAP                        *
+       *------------------------------------------------------*
+        COPY A05BMAP.
+
+       *------------------------------------------------------*
+       *   ZONE DE MESSAGE TAMPON POUR LE SEND FROM           *
+       *------------------------------------------------------*
+        01  MESSAGE-TXT            PIC X(79).
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  TOUCHES   FONCTIONS             *
+       *------------------------------------------------------*
+        COPY DFHAID.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  ATTRIBUTS                       *
+       *------------------------------------------------------*
+        COPY DFHBMSCA.
+
+       *======================================================*
+       *          L I N K A G E     S E C T I O N             *
+       *======================================================*
+        LINKAGE SECTION.
+        01  DFHCOMMAREA.
+            05 LK-COMMAREA            PIC X(50).
+
+       *======================================================*
+       *     P R O C E D U R E     D I V I S I O N            *
+       *======================================================*
+
+        PROCEDURE DIVISION.
+        00000-INIT-PROGRAMME.
+       *---------------------*
+             PERFORM  10000-DEBUT-PROGRAMME
+             PERFORM  20000-TRAIT-PROGRAMME
+             GOBACK
+             .
+
+        10000-DEBUT-PROGRAMME.
+       *---------------------*
+       *   TEST DE PREMIERE ENTREE DANS LE PROGRAMME
+       *   SI NON PROGRAMME  MENU --->  ARRET  (ACCES INTERDIT)
+            IF EIBCALEN = 0
+               INITIALIZE      WS-COMMAREA
+            ELSE
+               MOVE LK-COMMAREA    TO  WS-COMMAREA
+            END-IF
+
+            MOVE  PROG-COURANT     TO  PROG-PRECEDENT
+            MOVE  MON-PROG         TO  PROG-COURANT
+            .
+
+        20000-TRAIT-PROGRAMME.
+       *---------------------*
+            IF PROG-PRECEDENT  NOT =  PROG-COURANT
+               PERFORM  21000-TRAIT-CHARGEMENT
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+               PERFORM  23000-TRAIT-RECEPTION
+            END-IF
+            .
+
+        21000-TRAIT-CHARGEMENT.
+       *----------------------*
+       *  CHARGEMENT DE LA MAP AVANT AFFICHAGE
+            MOVE LOW-VALUE TO A05BMAPO
+
+       *  SI TRAITEMENT PARTICULIER AVANT AFFICHAGE
+       *    PERFORM  21100-TRAIT-SPECIFIQUE
+            .
+
+       *21100-TRAIT-SPECIFIQUE.
+       *----------------------*
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    .
+
+        22000-TRAIT-ENVOI.
+       *-----------------*
+       * AFFICHAGE DE LA DATE DU JOUR
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            END-STRING
+
+            EXEC CICS SEND MAP    ('A05BMAP')
+                           ERASE
+            END-EXEC
+
+            MOVE PROG-COURANT TO PROG-SUIVANT
+
+            EXEC CICS RETURN TRANSID  (MA-TRX)
+                             COMMAREA (WS-COMMAREA)
+                             LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23000-TRAIT-RECEPTION.
+       *---------------------*
+            EVALUATE EIBAID
+               WHEN DFHENTER
+                    PERFORM  23100-TRAIT-ENTER
+               WHEN DFHPF3
+                    PERFORM  23105-RETOUR-MENU
+               WHEN DFHCLEAR
+                    PERFORM  23200-TRAIT-FIN
+               WHEN OTHER
+                    PERFORM  90000-ERR-TOUCHE
+            END-EVALUATE
+            .
+
+        23105-RETOUR-MENU.
+       *------------------*
+            MOVE 'A05APGMT' TO PROG-SUIVANT
+            PERFORM 23110-PROG-SUIVANT
+            .
+
+        23110-PROG-SUIVANT.
+       *------------------*
+       *    IF  ......................
+       *       MOVE '?????'   TO  PROG-SUIVANT
+       *    END-IF
+
+            EXEC CICS XCTL  PROGRAM  (PROG-SUIVANT)
+                            COMMAREA (WS-COMMAREA)
+                            LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23100-TRAIT-ENTER.
+       *------------------*
+       *    ..........................
+            EXEC CICS RECEIVE MAP  ('A05BMAP')
+                              RESP (C-R)
+            END-EXEC
+
+            EVALUATE C-R
+               WHEN DFHRESP(NORMAL)
+                    CONTINUE
+       *       WHEN DFHRESP(MAPFAIL)
+       *            .............
+               WHEN OTHER
+                    PERFORM 91000-ERREUR-CICS
+            END-EVALUATE
+
+       *    ............................
+       *    ...  ANALYSE DES CHAMPS  ...
+       *    ............................
+       *  CONTROLE CODE PRODUIT OBLIGATOIRE
+            IF CDPRDTI = SPACES
+               MOVE 'CODE PRODUIT NON RENSEIGNE' TO MSGO
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+       *  CODE PRODUIT SAISI, CONTROLE D'EXISTENCE DANS LE FICHIER
+               MOVE CDPRDTI TO ENR1-CODE-PRDT
+               EXEC CICS READ
+                    FILE   ('FORA05F1')
+                    RIDFLD (ENR1-CODE-PRDT)
+                    INTO   (ENR1)
+                    RESP   (C-R)
+               END-EXEC
+               EVALUATE C-R
+                  WHEN DFHRESP(NORMAL)
+       * ENREGISTREMENT TROUVE, ON RENSEIGNE LES ZONES EN OUTPUT
+                       MOVE ENR1-TYPE-MVT TO TYPMVTO
+                       MOVE ENR1-QTE-MVT  TO QTEMVTO
+                       MOVE ENR1-PRIX     TO WS-PRIX-ED
+                       MOVE WS-PRIX-X     TO PRIXO
+                       PERFORM  22000-TRAIT-ENVOI
+                  WHEN DFHRESP(NOTFND)
+       * ENREGISTREMENT NON TROUVE, MSG ERREUR
+                       MOVE SPACES        TO TYPMVTO
+                       MOVE SPACES        TO QTEMVTO
+                       MOVE SPACES        TO PRIXO
+                       MOVE 'CODE PRODUIT INEXISTANT' TO MSGO
+                       PERFORM  22000-TRAIT-ENVOI
+                  WHEN OTHER
+                       PERFORM 91000-ERREUR-CICS
+               END-EVALUATE
+            END-IF
+            .
+
+        23200-TRAIT-FIN.
+       *---------------*
+            MOVE 'FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        90000-ERR-TOUCHE.
+       *----------------*
+            MOVE 'TOUCHE DE FONCTION INVALIDE' TO MSGO
+            PERFORM  22000-TRAIT-ENVOI
+            .
+
+        91000-ERREUR-CICS.
+       *-------------------*
+            MOVE 'ERREUR CICS !!!  FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        99000-FIN-CICS.
+       *--------------*
+            EXEC CICS SEND FROM   (MESSAGE-TXT)
+                           LENGTH (LENGTH OF MESSAGE-TXT)
+                           ERASE
+            END-EXEC
+
+            EXEC CICS RETURN END-EXEC
+            .
+ MEMBER NAME  A05P1
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P1.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 XX PIC XXX.
+        01 YY PIC XX.
+        01 EEE.
+               05 EE    PIC 999.
+               05 EE1   PIC 99.
+        01 EEEE REDEFINES EEE PIC 999V99.
+        01 EEE1 PIC X(6).
+
+        01 EEEE1 REDEFINES EEE1 PIC 999.99.
+        01 PRIX-W.
+              05 PRIX-ENT            PIC 999.
+              05 PRIX-DEC            PIC 99.
+        01 PRIX-NUM REDEFINES PRIX-W   PIC 9(3)V99.
+        01 PRIX-ED   PIC 9(3)V99.
+
+        01  ENR1.
+              05 ENR1-CODE-PRDT      PIC X(4).
+              05                     PIC X.
+              05 ENR1-TYPE-MVT       PIC X.
+              05                     PIC X.
+              05 ENR1-QTE-MVT        PIC 99.
+              05                     PIC X.
+              05 ENR1-PRIX           PIC 9(3)V99.
+              05                     PIC X(65).
+        PROCEDURE DIVISION.
+            MOVE '113' TO XX.
+            MOVE '22' TO YY.
+            MOVE XX TO EE.
+            MOVE YY TO EE1.
+       *    MOVE EEE TO EEE1
+
+                DISPLAY EEEE.
+                DISPLAY EEE.
+
+            STRING XX DELIMITED BY SPACES
+                   '.' DELIMITED BY SIZE
+                   YY DELIMITED BY SPACES
+                   INTO EEE1
+       *    MOVE EEE1 TO PRIX-ED
+       *    DISPLAY PRIX-ED
+            MOVE EEEE1 TO PRIX-ED
+            MOVE EEEE1 TO ENR1-PRIX
+            DISPLAY PRIX-ED
+       *    COMPUTE PRIX-ED = FUNCTION NUMVAL(EEE1) + 1
+                   DISPLAY EEE1
+                DISPLAY EEEE1.
+       *                  MOVE XX TO PRIX-ENT
+       *                  MOVE YY TO PRIX-DEC
+       *                  MOVE PRIX-NUM TO ENR1-PRIX
+                           DISPLAY ENR1-PRIX
+            STOP RUN.
+ MEMBER NAME  A05CPGMT
+       *======================================================*
+       *   MENU DE GESTION DES PRODUITS                       *
+       *======================================================*
+
+       *======================================================*
+       *   I D E N T I F I C A T I O N     D I V I S I O N    *
+       *======================================================*
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05CPGMT.
+
+       *======================================================*
+       *   E N V I R O N M E N T       D I V I S I O N        *
+       *======================================================*
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-390.
+        OBJECT-COMPUTER. IBM-390.
+
+       *======================================================*
+       *           D A T A         D I V I S I O N            *
+       *======================================================*
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+
+       * ZONE POUR DATE DU JOUR
+        01  WS-DATEJ               PIC X(8) VALUE SPACES.
+
+       * DESCRIPTION DE L'ENREGISTREMENT
+        01  ENR1.
+            05 ENR1-CODE-PRDT      PIC X(4).
+            05                     PIC X.
+            05 ENR1-TYPE-MVT       PIC X.
+            05                     PIC X.
+            05 ENR1-QTE-MVT        PIC 99.
+            05                     PIC X.
+            05 ENR1-PRIX           PIC 9(3)V99.
+            05                     PIC X(65).
+
+         01 PRIX-STR PIC X(6).
+
+         01 PRIX-NUMER REDEFINES PRIX-STR PIC 999.99.
+         01 PRIX-W.
+            05 PRIX-ENT            PIC 999.
+            05 PRIX-DEC            PIC 99.
+         01 PRIX-NUM REDEFINES PRIX-W   PIC 9(3)V99.
+       * PICTURE D'EDITION POUR LE PRIX
+        01  WS-PRIX-X.
+            05 WS-PRIX-ED          PIC ZZ9,99.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION DETAILLEE DE LA ZONE DE COMMUNICATION  *
+       *------------------------------------------------------*
+        01  WS-COMMAREA.
+            05 PROG-PRECEDENT      PIC X(8).
+            05 PROG-COURANT        PIC X(8).
+            05 PROG-SUIVANT        PIC X(8).
+            05                     PIC X(26).
+
+        01 C-R                     PIC S9(8) COMP.
+
+        01 MON-PROG                PIC X(8) VALUE 'A05CPGMT'.
+        01 MA-MAP                  PIC X(8) VALUE 'A05CMAP '.
+        01 MA-TRX                  PIC X(4) VALUE 'A05C'.
+       *------------------------------------------------------*
+       *   DESCRIPTION   DE   LA   MAP                        *
+       *------------------------------------------------------*
+        COPY A05CMAP.
+
+       *------------------------------------------------------*
+       *   ZONE DE MESSAGE TAMPON POUR LE SEND FROM           *
+       *------------------------------------------------------*
+        01  MESSAGE-TXT            PIC X(79).
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  TOUCHES   FONCTIONS             *
+       *------------------------------------------------------*
+        COPY DFHAID.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  ATTRIBUTS                       *
+       *------------------------------------------------------*
+        COPY DFHBMSCA.
+
+       *======================================================*
+       *          L I N K A G E     S E C T I O N             *
+       *======================================================*
+        LINKAGE SECTION.
+        01  DFHCOMMAREA.
+            05 LK-COMMAREA            PIC X(50).
+
+       *======================================================*
+       *     P R O C E D U R E     D I V I S I O N            *
+       *======================================================*
+
+        PROCEDURE DIVISION.
+        00000-INIT-PROGRAMME.
+       *---------------------*
+             PERFORM  10000-DEBUT-PROGRAMME
+             PERFORM  20000-TRAIT-PROGRAMME
+             GOBACK
+             .
+
+        10000-DEBUT-PROGRAMME.
+       *---------------------*
+       *   TEST DE PREMIERE ENTREE DANS LE PROGRAMME
+       *   SI NON PROGRAMME  MENU --->  ARRET  (ACCES INTERDIT)
+            IF EIBCALEN = 0
+               INITIALIZE      WS-COMMAREA
+            ELSE
+               MOVE LK-COMMAREA    TO  WS-COMMAREA
+            END-IF
+
+            MOVE  PROG-COURANT     TO  PROG-PRECEDENT
+            MOVE  MON-PROG         TO  PROG-COURANT
+            .
+
+        20000-TRAIT-PROGRAMME.
+       *---------------------*
+            IF PROG-PRECEDENT  NOT =  PROG-COURANT
+               PERFORM  21000-TRAIT-CHARGEMENT
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+               PERFORM  23000-TRAIT-RECEPTION
+            END-IF
+            .
+
+        21000-TRAIT-CHARGEMENT.
+       *----------------------*
+       *  CHARGEMENT DE LA MAP AVANT AFFICHAGE
+            MOVE LOW-VALUE TO A05CMAPO
+
+       *  SI TRAITEMENT PARTICULIER AVANT AFFICHAGE
+       *    PERFORM  21100-TRAIT-SPECIFIQUE
+            .
+
+       *21100-TRAIT-SPECIFIQUE.
+       *----------------------*
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    .
+
+        22000-TRAIT-ENVOI.
+       *-----------------*
+       * AFFICHAGE DE LA DATE DU JOUR
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            END-STRING
+
+            EXEC CICS SEND MAP    ('A05CMAP')
+                           ERASE
+            END-EXEC
+
+            MOVE PROG-COURANT TO PROG-SUIVANT
+
+            EXEC CICS RETURN TRANSID  (MA-TRX)
+                             COMMAREA (WS-COMMAREA)
+                             LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23000-TRAIT-RECEPTION.
+       *---------------------*
+            EVALUATE EIBAID
+               WHEN DFHENTER
+                    PERFORM  23100-TRAIT-ENTER
+               WHEN DFHPF3
+                    PERFORM  23105-RETOUR-MENU
+               WHEN DFHCLEAR
+                    PERFORM  23200-TRAIT-FIN
+               WHEN OTHER
+                    PERFORM  90000-ERR-TOUCHE
+            END-EVALUATE
+            .
+
+        23105-RETOUR-MENU.
+       *------------------*
+            MOVE 'A05APGMT' TO PROG-SUIVANT
+            PERFORM 23110-PROG-SUIVANT
+            .
+
+        23110-PROG-SUIVANT.
+       *------------------*
+       *    IF  ......................
+       *       MOVE '?????'   TO  PROG-SUIVANT
+       *    END-IF
+
+            EXEC CICS XCTL  PROGRAM  (PROG-SUIVANT)
+                            COMMAREA (WS-COMMAREA)
+                            LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23100-TRAIT-ENTER.
+       *------------------*
+       *    ..........................
+            EXEC CICS RECEIVE MAP  ('A05CMAP')
+                              RESP (C-R)
+            END-EXEC
+
+            EVALUATE C-R
+               WHEN DFHRESP(NORMAL)
+                    CONTINUE
+       *       WHEN DFHRESP(MAPFAIL)
+       *            .............
+               WHEN OTHER
+                    PERFORM 91000-ERREUR-CICS
+            END-EVALUATE
+
+       *    ............................
+       *    ...  ANALYSE DES CHAMPS  ...
+       *    ............................
+       *  CONTROLE CODE PRODUIT OBLIGATOIRE
+            IF CDPRDTI = ZEROES OR TYPMVTI = ZEROES
+                  OR QTEMVTI = ZEROES OR PRIXENTI = ZEROES
+       *          OR PRIXENTI NOT NUMERIC
+       *          OR PRIXDECI NOT NUMERIC
+               MOVE 'SAISIE INVALIDE1' TO MSGO
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+       *  CODE PRODUIT SAISI, CONTROLE D'EXISTENCE DANS LE FICHIER
+               MOVE SPACES TO ENR1
+               MOVE CDPRDTI TO ENR1-CODE-PRDT
+               MOVE TYPMVTI TO ENR1-TYPE-MVT
+               MOVE QTEMVTI TO ENR1-QTE-MVT
+               STRING PRIXENTI DELIMITED BY SPACES
+                      '.' DELIMITED BY SIZE
+                      PRIXDECI DELIMITED BY SPACES
+                      INTO PRIX-STR
+               MOVE PRIX-NUMER TO ENR1-PRIX
+       *       MOVE PRIXENTI TO PRIX-ENT
+       *       MOVE PRIXDECI TO PRIX-DEC
+       *       MOVE PRIX-NUM TO ENR1-PRIX
+       *               MOVE WS-PRIX-X     TO PRIXO
+               EXEC CICS WRITE
+                    FILE   ('FORA05F1')
+                    RIDFLD (ENR1-CODE-PRDT)
+                    FROM   (ENR1)
+                    RESP   (C-R)
+               END-EXEC
+               EVALUATE C-R
+                  WHEN DFHRESP(NORMAL)
+       * ENREGISTREMENT TROUVE, ON RENSEIGNE LES ZONES EN OUTPUT
+                       MOVE 'NEW PRODUIT ADDED' TO MSGO
+
+                       PERFORM  22000-TRAIT-ENVOI
+                 WHEN DFHRESP(DUPREC)
+       *           WHEN DFHRESP(NOTFND)
+       * ENREGISTREMENT NON TROUVE, MSG ERREUR
+       *               MOVE SPACES        TO TYPMVTO
+       *               MOVE ' '           TO QTEMVTO
+       *               MOVE SPACES        TO PRIXO
+                       MOVE 'CODE PRODUIT DOUBLE' TO MSGO
+                       PERFORM  22000-TRAIT-ENVOI
+                  WHEN OTHER
+                       PERFORM 91000-ERREUR-CICS
+               END-EVALUATE
+            END-IF
+            .
+
+        23200-TRAIT-FIN.
+       *---------------*
+            MOVE 'FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        90000-ERR-TOUCHE.
+       *----------------*
+            MOVE 'TOUCHE DE FONCTION INVALIDE' TO MSGO
+            PERFORM  22000-TRAIT-ENVOI
+            .
+
+        91000-ERREUR-CICS.
+       *-------------------*
+            MOVE 'ERREUR CICS !!!  FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        99000-FIN-CICS.
+       *--------------*
+            EXEC CICS SEND FROM   (MESSAGE-TXT)
+                           LENGTH (LENGTH OF MESSAGE-TXT)
+                           ERASE
+            END-EXEC
+
+            EXEC CICS RETURN END-EXEC
+            .
+ MEMBER NAME  A05JPGMT
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05JPGMT.
+        AUTHOR. NIKOLAI.
+        DATE-WRITTEN. 15/12/2023.
+       ******************************************************************
+       *         LECTURE DE LA TABLE CHANSON                            *
+       ******************************************************************
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        INPUT-OUTPUT SECTION.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+       * COMPTEURS
+        77  CPT-LUS            PIC 99 VALUE ZEROES.
+
+       * INDICATEUR FIN DE TABLE
+        77                     PIC X  VALUE SPACES.
+            88 FIN-TABLE              VALUE '1'.
+
+       * PICTURES D'EDITION
+        77  SQLCODE-ED         PIC +(8)9 VALUE ZEROES.
+
+       * SQLCA
+            EXEC SQL INCLUDE SQLCA   END-EXEC.
+
+       * TABLE CHANSON
+            EXEC SQL INCLUDE CONTRAT END-EXEC.
+            EXEC SQL INCLUDE PERSONNE END-EXEC.
+
+       * DECLARATION DU CURSEUR
+            EXEC SQL DECLARE CURS CURSOR FOR
+             SELECT DISTINCT P.CODEP, P.IDENTITE, CODEA, SIREN
+                    FROM CONTRAT C JOIN PERSONNE P
+                    ON C.CODEP = P.CODEP
+                    ORDER BY CODEP
+       *     SELECT CODEC, TITREC, VALUE(CODEA, '****')
+       *     FROM CHANSON
+       *     ORDER BY TITREC
+            END-EXEC
+
+       * LIGNES D'EDITION
+        01  L1.
+            05            PIC X(9)   VALUE 'CODEP'.
+            05            PIC X(25)  VALUE 'IDENTITE'.
+            05            PIC X(6)   VALUE 'CODEA'.
+            05            PIC X(5)   VALUE 'SIREN'.
+
+        01  L2.
+            05            PIC X(55)  VALUE ALL '-'.
+
+        PROCEDURE DIVISION.
+            PERFORM DEBUT
+            PERFORM UNTIL FIN-TABLE
+               PERFORM AFFICHER-CHANSON
+               PERFORM LECTURE-CHANSON
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN
+            .
+
+        DEBUT.
+            EXEC SQL OPEN CURS END-EXEC
+            IF SQLCODE NOT = ZEROES
+               MOVE SQLCODE TO SQLCODE-ED
+               DISPLAY 'ERREUR OPEN CURS, SQLCODE: ' SQLCODE-ED
+               PERFORM FIN-ERREUR
+            END-IF
+
+       * 1ERE LECTURE CURS
+            PERFORM LECTURE-CHANSON
+            IF FIN-TABLE
+               DISPLAY 'TABLE CHANSON VIDE'
+               PERFORM FIN-ERREUR
+            END-IF
+
+            DISPLAY L2
+            DISPLAY L1
+            DISPLAY L2
+            .
+
+        AFFICHER-CHANSON.
+            ADD 1 TO CPT-LUS
+            DISPLAY P-CODEP '   '  IDENTITE ' ' CNT-CODEA ' ' CNT-SIREN
+            .
+
+        LECTURE-CHANSON.
+            INITIALIZE PERSONNE
+            INITIALIZE CONTRAT
+            EXEC SQL FETCH CURS
+             INTO :P-CODEP, :IDENTITE, :CNT-CODEA, :CNT-SIREN
+            END-EXEC
+
+            EVALUATE SQLCODE
+             WHEN ZEROES
+              CONTINUE
+             WHEN +100
+              SET FIN-TABLE TO TRUE
+             WHEN OTHER
+               MOVE SQLCODE TO SQLCODE-ED
+               DISPLAY 'ERREUR FETCH, SQLCODE : ' SQLCODE-ED
+               PERFORM FIN-ERREUR
+            END-EVALUATE
+            .
+
+        FIN-ERREUR.
+            MOVE 17 TO RETURN-CODE
+            STOP RUN
+            .
+
+        FIN.
+            EXEC SQL CLOSE CURS END-EXEC
+
+            DISPLAY SPACES
+            DISPLAY 'CPT-LUS : ' CPT-LUS
+            .
+ MEMBER NAME  A00KPGMD
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A00KPGMD.
+        AUTHOR. PIERRE.
+       ******************************************************************
+       *     SELECTION D'UNE LIGNE DE LA TABLE CHANSON                  *
+       ******************************************************************
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+       * DESCRIPTION DE LA SQLCA
+            EXEC SQL INCLUDE SQLCA END-EXEC
+
+       * PICTURE EDITION
+        77  SQLCODE-ED                 PIC +(8)9 VALUE ZEROES.
+
+       * AUTRES HOSTS VARIABLES
+        01  WS-CHANSON.
+            10 WS-CODEC                PIC X(4).
+            10 WS-TITREC.
+                49 WS-TITREC-LEN       PIC S9(4) USAGE COMP.
+                49 WS-TITREC-TEXT      PIC X(40).
+            10 WS-CODEA                PIC X(4).
+
+       * DESCRIPTION DE LA TABLE CHANSON
+       *    EXEC SQL INCLUDE CHANSON END-EXEC
+
+        PROCEDURE DIVISION.
+       * SELECTION D'UNE LIGNE DE LA TABLE CHANSON AVEC RECEPTION
+       * DANS DES HOSTS VARIABLES AU FORMAT ADEQUAT
+            EXEC SQL
+              SELECT CODEC,
+                     TITREC,
+                     VALUE (CODEA, '****')
+              INTO   :WS-CHANSON
+       *             :WS-TITREC,
+       *             :WS-CODEA
+              FROM   CHANSON
+              WHERE  CODEC = '0571'
+            END-EXEC
+
+       * AFFICHAGE DES HOSTS VARIABLES
+       *    DISPLAY 'CODEC        : ' WS-CODEC
+       *    DISPLAY 'TITREC       : ' WS-TITREC-TEXT
+       *    DISPLAY 'CODEA        : ' WS-CODEA
+            DISPLAY SPACES
+            DISPLAY WS-CHANSON
+            STOP RUN.
+ MEMBER NAME  A05KPGMD
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05KPGMD.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+            EXEC SQL INCLUDE SQLCA END-EXEC
+            EXEC SQL INCLUDE VENTES END-EXEC
+        77 SQLCODE-ED                 PIC +(8)9 VALUE ZEROES.
+        01 PRIX-ED                    PIC +(5)9.9(2).
+        01 SQL-STATUS                 PIC 9.
+            88 SQL-OK                       VALUE 1.
+            88 SQL-ERR                      VALUE 0.
+        PROCEDURE DIVISION.
+            PERFORM DEBUT
+            PERFORM READ-OLD
+            IF SQL-OK
+                MOVE PRIX TO PRIX-ED
+                DISPLAY 'OLD PRIX - ' PRIX-ED
+                PERFORM READ-NEW
+                IF SQL-OK
+                     PERFORM AFFICHAGE
+                END-IF
+            END-IF
+            STOP RUN.
+
+        DEBUT.
+            INITIALIZE VENTES
+            MOVE 'T702'       TO CODEA
+            MOVE '463CQ'      TO SIREN
+            MOVE '20.12.1997' TO DATEVENTE
+            SET  SQL-OK       TO TRUE
+            .
+
+        READ-OLD.
+            EXEC SQL
+              SELECT *
+              INTO :VENTES
+              FROM VENTES
+              WHERE SIREN     = :SIREN AND
+                    CODEA     = :CODEA AND
+                    DATEVENTE = :DATEVENTE
+            END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+
+        INSERT-SQL.
+            EXEC SQL
+              INSERT
+              INTO VENTES
+              VALUES( :CODEA, CURRENT_DATE, :SIREN, 200, :PRIX*1.1)
+            END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+
+        READ-NEW.
+            EXEC SQL
+              SELECT *
+              INTO :VENTES
+              FROM VENTES
+              WHERE SIREN     = :SIREN AND
+                    CODEA     = :CODEA AND
+                    DATEVENTE = CURRENT_DATE
+            END-EXEC
+            PERFORM EVALUATE-SQLCODE
+            .
+
+        AFFICHAGE.
+            MOVE PRIX TO PRIX-ED
+            DISPLAY 'NEW PRIX - ' PRIX-ED
+            DISPLAY 'SIREN    - ' SIREN
+            DISPLAY 'CODEA    - ' CODEA
+            DISPLAY 'QTE      - ' QTE
+            DISPLAY 'DATE     - ' DATEVENTE
+            .
+
+        EVALUATE-SQLCODE.
+            EVALUATE SQLCODE
+                  WHEN ZEROES
+                   CONTINUE
+                  WHEN +100
+                   SET SQL-ERR TO TRUE
+                   DISPLAY 'CODE INCONNU'
+                  WHEN OTHER
+                   MOVE SQLCODE TO SQLCODE-ED
+                   DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                   STOP RUN
+            END-EVALUATE.
+ MEMBER NAME  A05P19
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P19.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+            COPY ZSP7.
+        PROCEDURE DIVISION.
+            MOVE 'AD23' TO ZSP7-CODEA
+            DISPLAY ZSP7-CODEA
+       *    ACCEPT Z4-ENR
+       *    PERFORM UNTIL Z4-ENR = 'FIN'
+       *    DISPLAY Z4-ENR
+       *         CALL 'A05SP4' USING Z4-SP4
+       *         EVALUATE Z4-CODRET
+       *              WHEN 0 DISPLAY 'WRITE OK'
+       *              WHEN 1 DISPLAY 'KEY DOUBLE - ' Z4-CODE-PRDT
+       *              WHEN OTHER DISPLAY 'ERROR' Z4-CODRET
+       *         END-EVALUATE
+       *         ACCEPT Z4-ENR
+       *    END-PERFORM
+            STOP RUN.
+ MEMBER NAME  A05MPGMD
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05MPGMD.
+        AUTHOR. NIKOLAI.
+        DATE-WRITTEN. 17/12/2023.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+       * SQLCA
+            EXEC SQL INCLUDE SQLCA END-EXEC
+
+       * COPY DE LA ZONE DE COMMUNICATION AVEC A00SP7
+            COPY ZSP7.
+
+       * DIVERS
+        01  WS-CAS                      PIC 99       VALUE ZEROES.
+        01  WS-RESULTAT-ATTENDU         PIC X(50)    VALUE SPACES.
+
+        PROCEDURE DIVISION.
+       * CREATION BIEN EFFECTUEE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'CREATION BIEN EFFECTUEE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+            EXEC SQL ROLLBACK END-EXEC
+
+       * CREATION BIEN EFFECTUEE
+            INITIALIZE ZSP7
+            MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+            MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+            MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'C'                       TO ZSP7-FONCTION
+            MOVE 22                        TO ZSP7-DROITS
+            MOVE 'CREATION BIEN EFFECTUEE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       *    EXEC SQL ROLLBACK END-EXEC
+
+       * ALBUM INEXISTANT
+            INITIALIZE ZSP7
+            MOVE 'AAAA'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'ALBUM INEXISTANT'        TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * ALBUM INEXISTANT
+            INITIALIZE ZSP7
+            MOVE 'AAAAAAAAAAAAAA'          TO ZSP7-TITREA
+            MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+            MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'C'                       TO ZSP7-FONCTION
+            MOVE 25                        TO ZSP7-DROITS
+            MOVE 'ALBUM INEXISTANT'        TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * CODE ALBUM ET TITRE RENSEIGNES
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'CODE ALBUM ET TITRE RENSEIGNES' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * MAISON DE DISTRIBUTION INEXISTANTE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE 'AAAAA'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'MAISON DIST INEXISTANTE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * MAISON DE DISTRIBUTION INEXISTANTE
+            INITIALIZE ZSP7
+            MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+            MOVE 'AAAAAAAAAAA'             TO ZSP7-RAISON-SOCIALE
+            MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'C'                       TO ZSP7-FONCTION
+            MOVE 25                        TO ZSP7-DROITS
+            MOVE 'MAISON DIST INEXISTANTE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * CODE MAISON ET RAISON SOCIALE RENSEIGNES
+            INITIALIZE ZSP7
+            MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+            MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'C'                       TO ZSP7-FONCTION
+            MOVE 25                        TO ZSP7-DROITS
+            MOVE 'CODE MAISON ET RAISON RENS' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * PERSONNE INEXISTANTE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'AAAA'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * PERSONNE INEXISTANTE
+            INITIALIZE ZSP7
+            MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+            MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+            MOVE 'AAAAAAAAAAA'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'C'                       TO ZSP7-FONCTION
+            MOVE 25                        TO ZSP7-DROITS
+            MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * CODE PERSONNE ET IDENTITE RENSEIGNES
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+       * CAS 12
+       * CONTRAT DEJA EXISTANT
+            INITIALIZE ZSP7
+            MOVE 'A836'                    TO ZSP7-CODEA
+            MOVE '200AJ'                   TO ZSP7-SIREN
+            MOVE 'P150'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'D'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'CONTRAT DEJA EXISTANT'   TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+
+       * DATE DE SIGNATURE INVALIDE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE 'AAAAAAAA'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'DATE SIGNATURE INVALIDE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * DATE DE SIGNATURE INVALIDE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '99999999'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'DATE SIGNATURE INVALIDE' TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * FONCTION INVALIDE
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'A'                       TO ZSP7-FONCTION
+            MOVE 6                         TO ZSP7-DROITS
+            MOVE 'FONCTION INVALIDE'       TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * DROITS INVALIDES
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE ZEROES                    TO ZSP7-DROITS
+            MOVE 'DROITS INVALIDES'        TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+       * DROITS INVALIDES
+            INITIALIZE ZSP7
+            MOVE 'C109'                    TO ZSP7-CODEA
+            MOVE '950RJ'                   TO ZSP7-SIREN
+            MOVE 'P190'                    TO ZSP7-CODEP
+            MOVE '20231231'                TO ZSP7-DATESIGN
+            MOVE 'I'                       TO ZSP7-FONCTION
+            MOVE 7                         TO ZSP7-DROITS
+            MOVE 'DROITS INVALIDES'        TO WS-RESULTAT-ATTENDU
+            PERFORM APPEL-SSPROG
+
+            STOP RUN
+            .
+
+        APPEL-SSPROG.
+            DISPLAY SPACES
+            ADD 1 TO WS-CAS
+            DISPLAY ' CAS : ' WS-CAS
+            DISPLAY '   ALBUM   : ' ZSP7-CODEA ', ' ZSP7-TITREA
+            DISPLAY '   MAISON  : ' ZSP7-SIREN ', ' ZSP7-RAISON-SOCIALE
+            DISPLAY '   PERSONNE: ' ZSP7-CODEP ', ' ZSP7-IDENTITE
+            DISPLAY '   DROITS  : ' ZSP7-DROITS
+            DISPLAY '   DATESIGN: ' ZSP7-DATESIGN
+            DISPLAY '   FONCTION: ' ZSP7-FONCTION
+            DISPLAY '   RESULTAT ATTENDU : ' WS-RESULTAT-ATTENDU
+
+            CALL 'A05SP6' USING ZSP7
+
+            DISPLAY '   RESULTAT OBSERVE : ' ZSP7-CODRET ' ' ZSP7-LIBERR
+            .
+ MEMBER NAME  A05SP6
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP6.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+            EXEC SQL INCLUDE SQLCA    END-EXEC.
+            EXEC SQL INCLUDE CONTRAT  END-EXEC.
+            EXEC SQL INCLUDE ALBUM    END-EXEC.
+            EXEC SQL INCLUDE MAISOND  END-EXEC.
+            EXEC SQL INCLUDE PERSONNE END-EXEC.
+        01  CNT-STEP          PIC 9          VALUE ZEROS.
+        01  DROITS-AVG        PIC S9(3)V9(2) USAGE COMP-3.
+        01  DROITS-ED         PIC 9(3)V99.
+        01  PRCT-ED           PIC ZZ9.
+
+       * TABLE DES ERREURS
+        01  TABERR.
+            05 PIC X(55) VALUE 'ALBUM NON RENSEIGNE OU INEXISTANT'.
+            05 PIC X(55) VALUE 'CODE ALBUM ET TITRE RENSEIGNES'.
+            05 PIC X(55) VALUE 'MAISON DIST NON RENSEIGNEE OU INEX'.
+            05 PIC X(55) VALUE 'CODE MAISON ET RAISON SOCIALE RENS'.
+            05 PIC X(55) VALUE 'PERSONNE NON RENSEIGNE OU INEXISTANTE'.
+            05 PIC X(55) VALUE 'CODE PERSONNE ET IDENTITE RENSEIGNES'.
+            05 PIC X(55) VALUE 'CONTRAT DEJA EXISTANT'.
+            05 PIC X(55) VALUE 'DATE DE SIGNATURE INVALIDE'.
+            05 PIC X(55) VALUE 'FONCTION INVALIDE'.
+            05 PIC X(55) VALUE 'DROITS INVALIDES'.
+            05 PIC X(55) VALUE 'ERREUR TECHNIQUE'.
+        01  REDEFINES TABERR.
+            05 P-ERR PIC X(55) OCCURS 11.
+
+        77  SQLCODE-ED        PIC +(8)9 VALUE ZEROES.
+            COPY ZCOMDAT.
+        LINKAGE SECTION.
+            COPY ZSP7.
+
+        PROCEDURE DIVISION USING ZSP7.
+            PERFORM CONTROL-ALBUM
+            PERFORM CONTROL-MAISON
+            PERFORM CONTROL-PERSONNE
+            PERFORM CONTROL-CONTRAT
+            PERFORM CONTROL-DATECONTRACT
+            PERFORM CONTROL-FONCTION
+            PERFORM CONTROL-DROITS
+
+            PERFORM NEW-CONTRAT
+            GOBACK.
+
+        NEW-CONTRAT.
+            MOVE 0  TO ZSP7-CODRET
+            MOVE 'CREATION BIEN EFFECTUEE'  TO ZSP7-LIBERR
+            MOVE CODEA          TO CNT-CODEA
+            MOVE SIREN          TO CNT-SIREN
+            MOVE P-CODEP        TO CNT-CODEP
+            MOVE ZSP7-DATESIGN  TO CNT-DATESIGN
+            MOVE ZSP7-FONCTION  TO CNT-FONCTION
+            MOVE ZSP7-DROITS    TO CNT-DROITS
+             EXEC SQL
+                  INSERT
+                  INTO CONTRAT
+                  VALUES(:CNT-CODEA, :CNT-SIREN, :CNT-CODEP,
+                         :CNT-DROITS,
+                          DATE(TO_DATE(:CNT-DATESIGN,'YYYYMMDD' )),
+                          :CNT-FONCTION)
+                  END-EXEC
+             PERFORM EVALUATE-SQLCODE
+            .
+
+        CONTROL-ALBUM.
+            IF ZSP7-CODEA = SPACES AND ZSP7-TITREA  = SPACES
+                 MOVE 1 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            END-IF
+            IF ZSP7-CODEA NOT = SPACES AND
+               ZSP7-TITREA NOT = SPACES
+                 MOVE 2 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            ELSE
+                 MOVE 1 TO CNT-STEP
+            END-IF
+            MOVE ZSP7-TITREA TO TITREA-TEXT
+            MOVE 30          TO TITREA-LEN
+            MOVE ZSP7-CODEA  TO CODEA
+              EXEC SQL
+                SELECT CODEA
+                INTO :CODEA
+                FROM ALBUM
+                WHERE
+                      CODEA       = :CODEA OR
+                      TITREA      = :TITREA
+              END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+
+        CONTROL-MAISON.
+            IF ZSP7-SIREN = SPACES AND ZSP7-RAISON-SOCIALE = SPACES
+                 MOVE 3 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            END-IF
+            IF ZSP7-SIREN NOT = SPACES AND
+               ZSP7-RAISON-SOCIALE NOT = SPACES
+                 MOVE 4 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            ELSE
+                 MOVE 3 TO CNT-STEP
+            END-IF
+            MOVE ZSP7-SIREN          TO SIREN
+            MOVE ZSP7-RAISON-SOCIALE TO RAISON-SOCIALE
+              EXEC SQL
+                SELECT SIREN
+                INTO :SIREN
+                FROM MAISON_DIST
+                WHERE
+                      SIREN          = :SIREN OR
+                      RAISON_SOCIALE = :RAISON-SOCIALE
+              END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+        CONTROL-PERSONNE.
+            IF ZSP7-CODEP = SPACES AND ZSP7-IDENTITE = SPACES
+                 MOVE 5  TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            END-IF
+            IF ZSP7-CODEP NOT = SPACES AND
+               ZSP7-IDENTITE NOT = SPACES
+                 MOVE 6 TO ZSP7-CODRET
+                 PERFORM GOBACK-ERROR
+            ELSE
+                 MOVE 5 TO CNT-STEP
+            END-IF
+            MOVE ZSP7-CODEP          TO P-CODEP
+            MOVE ZSP7-IDENTITE       TO IDENTITE-TEXT
+            MOVE 25                  TO IDENTITE-LEN
+              EXEC SQL
+                SELECT CODEP
+                INTO :P-CODEP
+                FROM PERSONNE
+                WHERE
+                      CODEP          = :P-CODEP OR
+                      IDENTITE       = :IDENTITE
+              END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+
+        CONTROL-DATECONTRACT.
+            INITIALIZE ZCOM
+            MOVE ZSP7-DATESIGN TO ZDATE
+            CALL 'A99CTDAT' USING ZCOM
+            IF ZCDRET-KO
+                  MOVE 8 TO ZSP7-CODRET
+                  PERFORM GOBACK-ERROR
+            END-IF.
+
+        CONTROL-FONCTION.
+            IF ZSP7-FONCTION NOT = 'I' AND 'P' AND 'C' AND 'D'
+               OR ZSP7-FONCTION = SPACES
+                  MOVE 9 TO ZSP7-CODRET
+                  PERFORM GOBACK-ERROR
+            END-IF.
+
+        CONTROL-DROITS.
+            IF ZSP7-DROITS NOT NUMERIC OR ZSP7-DROITS = 0
+                  MOVE 10 TO ZSP7-CODRET
+                  PERFORM GOBACK-ERROR
+            END-IF
+            MOVE P-CODEP             TO CNT-CODEP
+            MOVE ZSP7-FONCTION       TO CNT-FONCTION
+            EXEC SQL
+              SELECT DISTINCT IFNULL((SELECT AVG(DROITS)
+                   FROM CONTRAT
+                   WHERE CODEP = :CNT-CODEP AND
+                         FONCTION = :CNT-FONCTION) ,
+                    (SELECT AVG(DROITS)
+                     FROM CONTRAT
+                     WHERE FONCTION = :CNT-FONCTION))
+                   INTO :DROITS-AVG
+                   FROM CONTRAT
+            END-EXEC
+       *    MOVE DROITS-AVG TO DROITS-ED
+            COMPUTE  DROITS-ED = (DROITS-AVG - ZSP7-DROITS) / DROITS-AVG
+       *    COMPUTE  DROITS-ED =  ABS(DROITS-ED)
+            IF  DROITS-ED > 0.1
+                  MOVE 10 TO ZSP7-CODRET
+                  COMPUTE PRCT-ED =  DROITS-ED * 100
+                  DISPLAY  ZSP7-DROITS ' > ' DROITS-AVG ', ' PRCT-ED '%'
+                  PERFORM GOBACK-ERROR
+            END-IF
+            .
+        CONTROL-CONTRAT.
+            MOVE CODEA               TO CNT-CODEA
+            MOVE SIREN               TO CNT-SIREN
+            MOVE P-CODEP             TO CNT-CODEP
+            MOVE ZSP7-FONCTION       TO CNT-FONCTION
+              EXEC SQL
+                SELECT *
+                INTO :CONTRAT
+                FROM CONTRAT
+                WHERE
+                      CODEP          = :CNT-CODEP AND
+                      SIREN          = :CNT-SIREN AND
+                      CODEA          = :CNT-CODEA AND
+                      FONCTION       = :CNT-FONCTION
+              END-EXEC
+            PERFORM EVALUATE-SQLCODE-EX
+             .
+        EVALUATE-SQLCODE.
+                EVALUATE SQLCODE
+                      WHEN ZEROES
+                        CONTINUE
+                      WHEN +100
+                        MOVE CNT-STEP TO ZSP7-CODRET
+                        PERFORM GOBACK-ERROR
+                      WHEN OTHER
+                       MOVE 11 TO ZSP7-CODRET
+                       MOVE SQLCODE TO SQLCODE-ED
+                       DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                       PERFORM GOBACK-ERROR
+                END-EVALUATE.
+        EVALUATE-SQLCODE-EX.
+                EVALUATE SQLCODE
+                      WHEN ZEROES
+                        MOVE 7 TO  ZSP7-CODRET
+                        PERFORM GOBACK-ERROR
+                      WHEN +100
+                        CONTINUE
+                      WHEN OTHER
+                       MOVE 11 TO ZSP7-CODRET
+                       DISPLAY 'ERREUR SELECT, SQLCODE : ' SQLCODE
+                       PERFORM GOBACK-ERROR
+                END-EVALUATE.
+
+        GOBACK-ERROR.
+            MOVE P-ERR(ZSP7-CODRET) TO ZSP7-LIBERR
+            GOBACK
+            .
+
+ MEMBER NAME  A05P2
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P2.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 Z1                      PIC X(50).
+        01 Z2                      PIC X(50).
+        01 CNT                     PIC 99.
+        01 CNT2                    PIC 99.
+        01 I                       PIC 99.
+        PROCEDURE DIVISION.
+            MOVE 'PILE OU FACE, VICE ET VERSA, RECTO VERSO' TO Z1
+            DISPLAY Z1
+            INSPECT Z1 TALLYING CNT FOR ALL 'V'
+            DISPLAY CNT
+
+            MOVE FUNCTION REVERSE(Z1) TO Z2
+            DISPLAY Z2
+
+            INSPECT Z1 TALLYING I FOR CHARACTERS
+            INITIALIZE Z2
+            MOVE 1 TO CNT
+            PERFORM UNTIL I = 0
+               MOVE Z1(I : 1) TO Z2(CNT : 1)
+               SUBTRACT 1 FROM I
+               ADD      1 TO   CNT
+            END-PERFORM
+            DISPLAY Z2
+
+            MOVE ZEROS TO CNT CNT2
+            INSPECT Z1 TALLYING CNT FOR ALL SPACES
+            INSPECT FUNCTION REVERSE(Z1) TALLYING
+                 CNT2 FOR LEADING SPACES
+            COMPUTE CNT = CNT - CNT2 + 1
+            DISPLAY CNT
+            STOP RUN.
+ MEMBER NAME  A05P20
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P20.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT1  ASSIGN TO DDINPUT1
+                   FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT1.
+             COPY QUIZ REPLACING ==:PREF:== BY ==Q1==.
+        WORKING-STORAGE SECTION.
+             EXEC SQL INCLUDE SQLCA END-EXEC
+             EXEC SQL INCLUDE SQLQUIZ END-EXEC
+             EXEC SQL INCLUDE SQLJEU  END-EXEC
+             EXEC SQL INCLUDE SQLJJ   END-EXEC
+        77 SQLCODE-ED           PIC +(8)9 VALUE ZEROES.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+        01 REPONSE              PIC X(30).
+        01 REPONSE-UP           PIC X.
+        01 USERID               PIC X(8).
+        01 I                    PIC 99 VALUE ZEROS.
+        01 CNT-CORRECT          PIC 99 VALUE ZEROS.
+        01 PRC-CORRECT          PIC 99 VALUE ZEROS.
+        PROCEDURE DIVISION.
+       *****************MAIN*****************
+             PERFORM DEBUT
+             PERFORM LECTURE1
+             PERFORM UNTIL FIN-FILE
+                EVALUATE Q1-TYPE-ENR
+                   WHEN 'Q'   CONTINUE
+                   WHEN 'R'   PERFORM ADDREPONSE
+                   WHEN OTHER DISPLAY 'ERROR'
+                END-EVALUATE
+                PERFORM LECTURE1
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+       *****************PROCEDURES**********
+        DEBUT.
+             MOVE SPACES TO REPONSE
+             OPEN INPUT FINPUT1
+             SET FILE-READ-OK TO TRUE
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             PERFORM READ-SOLUT
+             .
+        LECTURE1.
+             IF NOT FIN-FILE
+                 READ FINPUT1
+                      AT END SET FIN-FILE TO TRUE
+                 END-READ
+                 IF FS NOT = ZEROS AND FS NOT = 10
+                     DISPLAY 'ERROR READING'
+                     STOP RUN
+                 END-IF
+             END-IF.
+
+        ADDREPONSE.
+             ADD 1 TO I
+             MOVE FUNCTION UPPER-CASE(Q1-REPONSE) TO REPONSE-UP
+             MOVE REPONSE-UP TO REPONSE(I : 1)
+             IF REPONSE-UP = Q-SOLUT(I : 1)
+                  ADD 1 TO CNT-CORRECT
+             END-IF
+             .
+
+         READ-SOLUT.
+             MOVE 'QU001' TO Q-CODEJ
+                  EXEC SQL
+                    SELECT SOLUT, NBREM , NPOIN
+                    INTO :Q-SOLUT, :NBREM , :NPOIN
+                    FROM QUIZ Q JOIN JEU J ON
+                         Q.CODEJ = J.CODEJ
+                    WHERE Q.CODEJ     = :Q-CODEJ
+                  END-EXEC
+                  PERFORM EVALUATE-SQLCODE
+             .
+         INSERT-SQL.
+             MOVE 'FORA05'    TO USERID
+             MOVE CNT-CORRECT TO JJ-NPOIN
+                 EXEC SQL
+                   INSERT INTO JEU_JOUEUR
+                   VALUES (:USERID, :Q-CODEJ , :JJ-NPOIN)
+                 END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+         EVALUATE-SQLCODE.
+             EVALUATE SQLCODE
+                     WHEN ZEROES
+                      CONTINUE
+                     WHEN +100
+                      DISPLAY 'CODE INCONNU'
+                     WHEN OTHER
+                      MOVE SQLCODE TO SQLCODE-ED
+                      DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                      STOP RUN
+              END-EVALUATE.
+         FIN.
+             PERFORM INSERT-SQL
+             COMPUTE PRC-CORRECT = CNT-CORRECT * 100 / NBREM
+             DISPLAY SPACES
+             DISPLAY 'REPONSE     - ' REPONSE
+             DISPLAY 'SOLUTION    - ' Q-SOLUT
+             DISPLAY 'QNT CORRECT - ' CNT-CORRECT
+             DISPLAY '%%  CORRECT - ' PRC-CORRECT
+             IF  CNT-CORRECT < NPOIN
+                 DISPLAY 'LOSE'
+             ELSE
+                 DISPLAY 'WIN'
+             END-IF
+             CLOSE FINPUT1.
+ MEMBER NAME  A05SP21
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05SP21.
+        AUTHOR. NIKOLAI.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        COPY WMESSAGE.
+        01  REDEFINES TABLE-MESSAGE.
+            05 P-ERR PIC X(60) OCCURS 18.
+        01  MSG-ERR-ED       PIC X(75).
+        LINKAGE SECTION.
+        01 Z2-SP21.
+            05 CODE-ERR      PIC 99.
+            05 ENR-CODE      PIC X(6).
+            05 MSG-ERR       PIC X(132).
+        PROCEDURE DIVISION USING Z2-SP21.
+            MOVE SPACES TO MSG-ERR
+            IF ENR-CODE = SPACES
+                  DISPLAY P-ERR(CODE-ERR)
+            ELSE
+       *          MOVE P-ERR(CODE-ERR) TO MSG-ERR
+                  STRING  ENR-CODE DELIMITED BY SIZE
+                          ' ERREUR :    ' DELIMITED BY SIZE
+                          P-ERR(CODE-ERR) DELIMITED BY SIZE
+                  INTO    MSG-ERR
+                  MOVE MSG-ERR TO MSG-ERR-ED
+                  DISPLAY MSG-ERR-ED
+            END-IF
+            GOBACK.
+ MEMBER NAME  COPYA21
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P21.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS   ASSIGN TO DDINPUT
+              ORGANIZATION IS INDEXED
+              RECORD KEY IS MAT-X3 OF ENR-ASS
+              ACCESS MODE IS RANDOM
+              FILE STATUS FS.
+            SELECT FMVTSE  ASSIGN TO AS-DDINPUT2
+              FILE STATUS FS2.
+            SELECT FKSDSOUT ASSIGN TO DDINPUT3
+              ORGANIZATION IS INDEXED
+              RECORD KEY IS  MAT-X3 OF ENR-ASS-OUT
+              ACCESS MODE IS RANDOM
+              FILE STATUS FS3.
+            SELECT FETATAN ASSIGN TO DDINPUT4
+               FILE STATUS FS4.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR-ASS.
+            COPY WASSURES.
+        FD FKSDSOUT.
+        01 ENR-ASS-OUT.
+            COPY WASSURES.
+        FD FMVTSE
+            LABEL RECORD OMITTED
+            DATA RECORD ENR-ESDS.
+        01 ENR-ESDS PIC X(80).
+        FD FETATAN.
+        01 ENR-ETATAN  PIC X(132).
+        WORKING-STORAGE SECTION.
+        COPY WFMVTS.
+        COPY WMESSAGE.
+        01  REDEFINES TABLE-MESSAGE.
+            05 P-ERR PIC X(60) OCCURS 18.
+        01 FS                 PIC 99 VALUE ZEROS.
+        01 FS2                PIC 99 VALUE ZEROS.
+        01 FS3                PIC 99 VALUE ZEROS.
+        01 FS4                PIC 99 VALUE ZEROS.
+        01 ENR-CNTR           PIC X.
+            88 ENR-INEX       VALUE 'I'.
+            88 ENR-EX         VALUE 'E'.
+        01                    PIC X.
+            88 FIN-FILE       VALUE SPACES.
+        01                    PIC X.
+            88 CNTR-OK        VALUE 'O'.
+            88 CNTR-ERR       VALUE 'E'.
+        01 CNT-MVT            PIC 99 VALUE ZEROS.
+        01 CNT-CRT            PIC 99 VALUE ZEROS.
+        01 CNT-SPR            PIC 99 VALUE ZEROS.
+        01 CNT-MDF            PIC 99 VALUE ZEROS.
+        01 CNT-CREES          PIC 99 VALUE ZEROS.
+        01 CNT-ERR-ALL        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MVT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-CRT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-SPR        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MDF        PIC 99 VALUE ZEROS.
+        01 CNT-ASS-LU         PIC 99 VALUE ZEROS.
+        01 Z2-SP21.
+            05 CODE-ERR       PIC 99 VALUE ZEROS.
+            05 ENR-CODE       PIC X(6).
+            05 MSG-ERR        PIC X(132).
+        01 A05SP21            PIC X(8) VALUE 'A05SP21'.
+        01 WS-DATEJ           PIC X(8).
+        01 DATEJO             PIC X(29).
+
+        PROCEDURE DIVISION.
+
+            PERFORM DEBUT
+            PERFORM LECTURE
+
+            PERFORM UNTIL FIN-FILE
+                PERFORM SEARCH-ENR
+                PERFORM CNTR-ERROR
+                IF CNTR-OK
+                    PERFORM MISEAJOUR
+                ELSE
+                    PERFORM ETAT-ANO
+                END-IF
+                PERFORM LECTURE
+            END-PERFORM
+
+            PERFORM STATS
+            PERFORM FIN
+            STOP RUN.
+
+        DEBUT.
+            OPEN INPUT FKSDS
+            IF FS NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ASSURE'
+                 STOP RUN
+            END-IF
+            OPEN INPUT FMVTSE
+            IF FS2 NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE MVT'
+                 STOP RUN
+            END-IF
+            OPEN I-O   FKSDSOUT
+            IF FS3 NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ASSURE OUTPUT'
+                 STOP RUN
+            END-IF
+            OPEN OUTPUT FETATAN
+            IF FS  NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ETAT-ANO'
+                 STOP RUN
+            END-IF
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING 'MISE A JOUR DU :   ' DELIMITED BY SIZE
+                   WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            DISPLAY DATEJO
+            DISPLAY 'USER           :   FORA05'
+            DISPLAY SPACES
+            DISPLAY '         ETAT DES ANOMALIES'
+            DISPLAY SPACES
+            MOVE  DATEJO                        TO ENR-ETATAN
+            WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            MOVE  'USER           :   FORA05'   TO ENR-ETATAN
+            WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            MOVE  SPACES                        TO ENR-ETATAN
+            WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            MOVE  '         ETAT DES ANOMALIES' TO  ENR-ETATAN
+            WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            MOVE  SPACES                        TO ENR-ETATAN
+            WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            .
+
+        LECTURE.
+            READ FMVTSE INTO W-FMVTSE
+                 AT END  SET FIN-FILE TO TRUE
+                 NOT END ADD 1 TO CNT-MVT
+            END-READ
+            .
+
+        SEARCH-ENR.
+            MOVE SPACES TO ENR-CNTR
+            MOVE F-MAT  TO MAT-X3 OF ENR-ASS
+            READ FKSDS
+                  INVALID KEY SET ENR-INEX TO TRUE
+                  NOT INVALID KEY
+                      ADD 1 TO CNT-ASS-LU
+                      SET ENR-EX TO TRUE
+            END-READ
+            .
+
+        CNTR-ERROR.
+            SET CNTR-OK  TO TRUE
+            MOVE F-MAT TO ENR-CODE
+            PERFORM CNTR-MVT
+            PERFORM CNTR-CREATION
+            PERFORM CNTR-DELETE
+            PERFORM CNTR-MODIF
+            .
+
+        CNTR-MVT.
+            IF F-CODE NOT = 'C' AND 'M' AND 'S'
+                ADD  1  TO CNT-ERR-MVT
+                SET CNTR-ERR TO TRUE
+                MOVE 1  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-CREATION.
+            IF F-CODE = 'C' AND ENR-EX
+                ADD  1  TO CNT-ERR-CRT
+                SET CNTR-ERR TO TRUE
+                MOVE 2  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-DELETE.
+            IF F-CODE = 'S' AND ENR-INEX
+                ADD  1  TO CNT-ERR-SPR
+                SET CNTR-ERR TO TRUE
+                MOVE 4  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-MODIF.
+            IF F-CODE = 'M' AND ENR-INEX
+                ADD  1  TO CNT-ERR-MDF
+                SET CNTR-ERR TO TRUE
+                MOVE 3  TO CODE-ERR
+            END-IF
+            .
+
+        MISEAJOUR.
+            MOVE SPACES     TO ENR-ASS-OUT
+            MOVE F-MAT      TO MAT-X3     OF ENR-ASS-OUT
+            MOVE F-NOM-PRE  TO NOM-PRE-A3 OF ENR-ASS-OUT
+            MOVE F-RUE      TO RUE-A3     OF ENR-ASS-OUT
+            MOVE F-CP       TO CP-A3      OF ENR-ASS-OUT
+            MOVE F-VILLE    TO VILLE-A3   OF ENR-ASS-OUT
+            MOVE F-CODE     TO TYPE-V-A3  OF ENR-ASS-OUT
+            MOVE F-PRIME    TO PRIME-A3   OF ENR-ASS-OUT
+            MOVE F-BM       TO BM-A3      OF ENR-ASS-OUT
+            MOVE F-TAUX     TO TAUX-A3    OF ENR-ASS-OUT
+
+            EVALUATE F-CODE
+                WHEN 'C'
+                      WRITE   ENR-ASS-OUT
+                      ADD 1 TO CNT-CRT
+                WHEN 'S'
+                      DELETE  FKSDSOUT
+                      ADD 1 TO CNT-SPR
+                WHEN 'M'
+                      REWRITE ENR-ASS-OUT
+                      ADD 1 TO CNT-MDF
+            END-EVALUATE
+            .
+
+        ETAT-ANO.
+             CALL A05SP21 USING Z2-SP21
+             MOVE MSG-ERR TO ENR-ETATAN
+             WRITE ENR-ETATAN AFTER  ADVANCING 1 LINE
+            .
+
+        STATS.
+            MOVE SPACES TO  ENR-CODE
+            DISPLAY SPACES
+            DISPLAY '            STATISTIQUES'
+            DISPLAY SPACES
+            COMPUTE CNT-CREES = CNT-ASS-LU + CNT-CRT - CNT-SPR
+            DISPLAY P-ERR(5)  CNT-ASS-LU
+            DISPLAY P-ERR(6)  CNT-MVT
+            DISPLAY P-ERR(18) CNT-CRT
+            DISPLAY P-ERR(8)  CNT-CREES
+            DISPLAY P-ERR(9)  CNT-MDF
+            DISPLAY P-ERR(10) CNT-SPR
+            DISPLAY SPACES
+            COMPUTE CNT-ERR-ALL = CNT-ERR-MVT + CNT-ERR-CRT +
+                                  CNT-ERR-MDF + CNT-ERR-SPR
+            DISPLAY P-ERR(7)   CNT-ERR-ALL
+            DISPLAY P-ERR(11)  CNT-ERR-MVT
+            DISPLAY P-ERR(12)  CNT-ERR-CRT
+            DISPLAY P-ERR(13)  CNT-ERR-MDF
+            DISPLAY P-ERR(14)  CNT-ERR-SPR
+            .
+        FIN.
+            CLOSE FKSDS
+            CLOSE FKSDSOUT
+            CLOSE FMVTSE
+            CLOSE FETATAN
+            .
+ MEMBER NAME  A05P22DB
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P22DB.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS   ASSIGN TO DDINPUT
+              ORGANIZATION IS INDEXED
+              RECORD KEY IS MAT-X3 OF ENR-ASS
+              ACCESS MODE SEQUENTIAL
+              FILE STATUS FS.
+            SELECT FMVTSE  ASSIGN TO AS-DDINPUT2
+              FILE STATUS FS2.
+       *    SELECT FKSDSOUT ASSIGN TO DDINPUT3
+       *      ORGANIZATION IS INDEXED
+       *      RECORD KEY IS  MAT-X3 OF ENR-ASS-OUT
+       *      ACCESS MODE IS RANDOM
+       *      FILE STATUS FS3.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR-ASS.
+            COPY WASSURES.
+       *FD FKSDSOUT.
+       *01 ENR-ASS-OUT.
+       *    COPY WASSURES.
+        FD FMVTSE
+            LABEL RECORD OMITTED
+            DATA RECORD ENR-ESDS.
+        01 ENR-ESDS PIC X(80).
+        WORKING-STORAGE SECTION.
+             EXEC SQL INCLUDE SQLCA END-EXEC
+             EXEC SQL INCLUDE ASSURE  END-EXEC
+             EXEC SQL INCLUDE MVT     END-EXEC
+             EXEC SQL DECLARE CURS CURSOR FOR
+                 SELECT  CODEA, NOM, ADRESSE,
+                         CODEP, VILLE, TYPEM ,
+                         PRIME, BONUS, TAUX
+                 FROM ASSURE ORDER BY CODEA
+             END-EXEC.
+        77 SQLCODE-ED           PIC +(8)9 VALUE ZEROES.
+        COPY WFMVTS.
+        COPY WMESSAGE.
+        01  REDEFINES TABLE-MESSAGE.
+            05 P-ERR PIC X(60) OCCURS 18.
+        01 FS                 PIC 99 VALUE ZEROS.
+        01 FS2                PIC 99 VALUE ZEROS.
+        01 FS3                PIC 99 VALUE ZEROS.
+        01 ENR-CNTR           PIC X.
+            88 ENR-INEX       VALUE 'I'.
+            88 ENR-EX         VALUE 'E'.
+        01                    PIC X.
+            88 FIN-FILE       VALUE 'F'.
+            88 BEGIN-FILE     VALUE 'B'.
+        01                    PIC X.
+            88 FIN-CURS       VALUE SPACES.
+        01                    PIC X.
+            88 CNTR-OK        VALUE 'O'.
+            88 CNTR-ERR       VALUE 'E'.
+        01 CNT-MVT            PIC 99 VALUE ZEROS.
+        01 CPT-LUS-SQL        PIC 99 VALUE ZEROS.
+        01 CNT-CRT            PIC 99 VALUE ZEROS.
+        01 CNT-SPR            PIC 99 VALUE ZEROS.
+        01 CNT-MDF            PIC 99 VALUE ZEROS.
+        01 CNT-CREES          PIC 99 VALUE ZEROS.
+        01 CNT-ERR-ALL        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MVT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-CRT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-SPR        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MDF        PIC 99 VALUE ZEROS.
+        01 CNT-ASS-LU         PIC 99 VALUE ZEROS.
+        01 A05SP21            PIC X(8) VALUE 'A05SP21'.
+        01 Z2-SP21.
+            05 CODE-ERR       PIC 99 VALUE ZEROS.
+            05 ENR-CODE       PIC X(6).
+            05 MSG-ERR        PIC X(132).
+        01 WS-DATEJ           PIC X(8).
+        01 DATEJO             PIC X(29).
+
+        PROCEDURE DIVISION.
+
+            PERFORM DEBUT
+       ******* INSERT INTO SQL ASSURE FROM KSDS
+            PERFORM LECTURE-ASSURE
+            PERFORM UNTIL FIN-FILE
+                 PERFORM INSERT-ASSURE-SQL
+                 PERFORM LECTURE-ASSURE
+            END-PERFORM
+
+       ******* CONTROL ET M-A-J
+            EXEC SQL OPEN CURS END-EXEC
+       *    PERFORM UNTIL FIN-CURS
+       *         PERFORM FETCH-CURS
+       *         DISPLAY CODEA ' ' NOM
+       *    END-PERFORM
+
+            SET BEGIN-FILE TO TRUE
+            PERFORM LECTURE
+            PERFORM UNTIL FIN-FILE
+                PERFORM SEARCH-ENR-SQL
+                PERFORM CNTR-ERROR
+                IF CNTR-OK
+                    PERFORM MISEAJOUR
+                ELSE
+                    PERFORM ETAT-ANO
+                END-IF
+                PERFORM LECTURE
+            END-PERFORM
+
+            PERFORM STATS
+            PERFORM FIN
+            STOP RUN.
+
+        DEBUT.
+            OPEN INPUT FKSDS
+            IF FS NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ASSURE'
+                 STOP RUN
+            END-IF
+            OPEN INPUT FMVTSE
+            IF FS2 NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE MVT'
+                 STOP RUN
+            END-IF
+       *    OPEN I-O   FKSDSOUT
+       *    IF FS3 NOT = ZEROS
+       *         DISPLAY 'ERROR OPEN FILE ASSURE OUTPUT'
+       *         STOP RUN
+       *    END-IF
+            EXEC SQL DELETE  FROM ASSURE END-EXEC
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING 'MISE A JOUR DU :   ' DELIMITED BY SIZE
+                   WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            DISPLAY '------------  SQL ------------'
+            DISPLAY SPACES
+            DISPLAY DATEJO
+            DISPLAY 'USER           :   FORA05'
+            DISPLAY SPACES
+            DISPLAY '         ETAT DES ANOMALIES'
+            DISPLAY SPACES
+            .
+
+        LECTURE-ASSURE.
+            READ FKSDS
+                 AT END  SET FIN-FILE TO TRUE
+       *         NOT END ADD 1 TO CNT-MVT
+            END-READ
+            .
+
+        INSERT-ASSURE-SQL.
+            MOVE ENR-ASS TO ASSURE
+                 EXEC SQL
+                   INSERT INTO ASSURE
+                   VALUES (
+                          :CODEA, :NOM, :ADRESSE,
+                          :CODEP, :VILLE, :TYPEM ,
+                          :PRIME,:BONUS,:TAUX)
+                 END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+
+        INSERT-MVT-SQL.
+            MOVE W-FMVTSE TO MVT
+                 EXEC SQL
+                   INSERT INTO MVT
+                   VALUES (
+                          :M-CODEA, :M-NOM, :M-ADRESSE,
+                          :M-CODEP, :M-VILLE, :M-TYPEM ,
+                          :M-PRIME,:M-BONUS,:M-TAUX)
+                 END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+        UPDATE-ASSURE-SQL.
+            MOVE ENR-ASS TO ASSURE
+                 EXEC SQL
+                   UPDATE   ASSURE
+                   SET
+                          CODEA = :CODEA, NOM = :NOM, ADRESSE = :ADRESSE,
+                          CODEP = :CODEP, VILLE = :VILLE, TYPEM =:TYPEM ,
+                          PRIME = :PRIME, BONUS = :BONUS, TAUX = :TAUX
+                   WHERE CODEA = :CODEA
+                 END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+
+        DELETE-ASSURE-SQL.
+            MOVE ENR-ASS TO ASSURE
+                 EXEC SQL
+                   DELETE  FROM  ASSURE
+                   WHERE CODEA = :CODEA
+                 END-EXEC
+             PERFORM EVALUATE-SQLCODE
+             .
+
+        LECTURE.
+            READ FMVTSE INTO W-FMVTSE
+                 AT END  SET FIN-FILE TO TRUE
+                 NOT END ADD 1 TO CNT-MVT
+            END-READ
+       *    PERFORM INSERT-MVT-SQL
+            .
+
+        SEARCH-ENR-SQL.
+            MOVE F-MAT TO CODEA
+            EXEC SQL
+                 SELECT CODEA
+       *                CODEA, NOM, ADRESSE,
+       *                CODEP, VILLE, TYPEM ,
+       *                PRIME, BONUS, TAUX
+                 INTO :CODEA
+                 FROM ASSURE
+                 WHERE CODEA = :CODEA
+            END-EXEC
+       *        DISPLAY CODEA ', ' NOM ', ' ADRESSE ', '
+       *                CODEP ', ' VILLE ', ' TYPEM ', '
+       *                PRIME ', ' BONUS ', ' TAUX
+            EVALUATE SQLCODE
+                    WHEN ZEROES
+                       ADD 1 TO CNT-ASS-LU
+                       SET ENR-EX TO TRUE
+                    WHEN +100
+                       SET ENR-INEX TO TRUE
+                    WHEN OTHER
+                       MOVE SQLCODE TO SQLCODE-ED
+                       DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                       STOP RUN
+             END-EVALUATE
+            .
+
+        CNTR-ERROR.
+            MOVE F-MAT TO ENR-CODE
+            SET CNTR-OK  TO TRUE
+            PERFORM CNTR-MVT
+            PERFORM CNTR-CREATION
+            PERFORM CNTR-DELETE
+            PERFORM CNTR-MODIF
+            .
+        CNTR-MVT.
+            IF F-CODE NOT = 'C' AND 'M' AND 'S'
+                ADD  1  TO CNT-ERR-MVT
+                SET CNTR-ERR TO TRUE
+                MOVE 1  TO CODE-ERR
+            END-IF
+            .
+        CNTR-CREATION.
+            IF F-CODE = 'C' AND ENR-EX
+                ADD  1  TO CNT-ERR-CRT
+                SET CNTR-ERR TO TRUE
+                MOVE 2  TO CODE-ERR
+            END-IF
+            .
+        CNTR-DELETE.
+            IF F-CODE = 'S' AND ENR-INEX
+                ADD  1  TO CNT-ERR-SPR
+                SET CNTR-ERR TO TRUE
+                MOVE 4  TO CODE-ERR
+            END-IF
+            .
+        CNTR-MODIF.
+            IF F-CODE = 'M' AND ENR-INEX
+                ADD  1  TO CNT-ERR-MDF
+                SET CNTR-ERR TO TRUE
+                MOVE 3  TO CODE-ERR
+            END-IF
+            .
+
+        MISEAJOUR.
+            MOVE SPACES     TO ENR-ASS
+            MOVE F-MAT      TO MAT-X3     OF ENR-ASS
+            MOVE F-NOM-PRE  TO NOM-PRE-A3 OF ENR-ASS
+            MOVE F-RUE      TO RUE-A3     OF ENR-ASS
+            MOVE F-CP       TO CP-A3      OF ENR-ASS
+            MOVE F-VILLE    TO VILLE-A3   OF ENR-ASS
+            MOVE F-CODE     TO TYPE-V-A3  OF ENR-ASS
+            MOVE F-PRIME    TO PRIME-A3   OF ENR-ASS
+            MOVE F-BM       TO BM-A3      OF ENR-ASS
+            MOVE F-TAUX     TO TAUX-A3    OF ENR-ASS
+            EVALUATE F-CODE
+                WHEN 'C'
+                      PERFORM  INSERT-ASSURE-SQL
+       *              WRITE   ENR-ASS-OUT
+                      ADD 1 TO CNT-CRT
+                WHEN 'S'
+                      PERFORM DELETE-ASSURE-SQL
+       *              DELETE  FKSDSOUT
+                      ADD 1 TO CNT-SPR
+                WHEN 'M'
+                      PERFORM UPDATE-ASSURE-SQL
+       *              REWRITE ENR-ASS-OUT
+                      ADD 1 TO CNT-MDF
+            END-EVALUATE
+            .
+
+        EVALUATE-SQLCODE.
+             EVALUATE SQLCODE
+                     WHEN ZEROES
+                      CONTINUE
+                     WHEN +100
+                      DISPLAY 'CODE INCONNU'
+                     WHEN OTHER
+                      MOVE SQLCODE TO SQLCODE-ED
+                      DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                      STOP RUN
+              END-EVALUATE.
+
+        FETCH-CURS.
+            MOVE SPACES TO ASSURE
+            EXEC SQL FETCH CURS INTO
+                 :CODEA, :NOM, :ADRESSE,
+                 :CODEP, :VILLE, :TYPEM ,
+                 :PRIME,:BONUS,:TAUX
+            END-EXEC
+
+            EVALUATE SQLCODE
+             WHEN ZEROES
+              ADD 1 TO CPT-LUS-SQL
+             WHEN +100
+              SET FIN-CURS TO TRUE
+             WHEN OTHER
+              MOVE SQLCODE TO SQLCODE-ED
+              DISPLAY 'ERREUR FETCH CURS, SQLCODE : ' SQLCODE-ED
+              PERFORM FIN
+              STOP RUN
+            END-EVALUATE
+            .
+
+        ETAT-ANO.
+             CALL A05SP21 USING Z2-SP21
+            .
+        STATS.
+            MOVE SPACES TO  ENR-CODE
+            DISPLAY SPACES
+            DISPLAY '            STATISTIQUES'
+            DISPLAY SPACES
+            COMPUTE CNT-CREES = CNT-ASS-LU + CNT-CRT - CNT-SPR
+            DISPLAY P-ERR(5)  CNT-ASS-LU
+            DISPLAY P-ERR(6)  CNT-MVT
+            DISPLAY P-ERR(18) CNT-CRT
+            DISPLAY P-ERR(8)  CNT-CREES
+            DISPLAY P-ERR(9)  CNT-MDF
+            DISPLAY P-ERR(10) CNT-SPR
+            DISPLAY SPACES
+            COMPUTE CNT-ERR-ALL = CNT-ERR-MVT + CNT-ERR-CRT +
+                                  CNT-ERR-MDF + CNT-ERR-SPR
+            DISPLAY P-ERR(7)   CNT-ERR-ALL
+            DISPLAY P-ERR(11)  CNT-ERR-MVT
+            DISPLAY P-ERR(12)  CNT-ERR-CRT
+            DISPLAY P-ERR(13)  CNT-ERR-MDF
+            DISPLAY P-ERR(14)  CNT-ERR-SPR
+            .
+
+        FIN.
+            CLOSE FKSDS
+       *    CLOSE FKSDSOUT
+            CLOSE FMVTSE
+            EXEC SQL CLOSE CURS END-EXEC
+            .
+ MEMBER NAME  A05P21
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P21.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FKSDS   ASSIGN TO DDINPUT
+              ORGANIZATION IS INDEXED
+              RECORD KEY IS MAT-X3 OF ENR-ASS
+              ACCESS MODE IS RANDOM
+              FILE STATUS FS.
+            SELECT FMVTSE  ASSIGN TO AS-DDINPUT2
+              FILE STATUS FS2.
+            SELECT FKSDSOUT ASSIGN TO DDINPUT3
+              ORGANIZATION IS INDEXED
+              RECORD KEY IS  MAT-X3 OF ENR-ASS-OUT
+              ACCESS MODE IS RANDOM
+              FILE STATUS FS3.
+            SELECT FETATAN ASSIGN TO DDINPUT4
+              ORGANIZATION SEQUENTIAL
+              FILE STATUS FS4.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FKSDS.
+        01 ENR-ASS.
+            COPY WASSURES.
+        FD FKSDSOUT.
+        01 ENR-ASS-OUT.
+            COPY WASSURES.
+        FD FMVTSE
+            LABEL RECORD OMITTED
+            DATA RECORD ENR-ESDS.
+        01 ENR-ESDS PIC X(80).
+        FD FETATAN.
+        01 ENR-ETATAN PIC X(132).
+        WORKING-STORAGE SECTION.
+        COPY WFMVTS.
+        COPY WMESSAGE.
+        01  REDEFINES TABLE-MESSAGE.
+            05 P-ERR PIC X(60) OCCURS 18.
+        01 FS                 PIC 99 VALUE ZEROS.
+        01 FS2                PIC 99 VALUE ZEROS.
+        01 FS3                PIC 99 VALUE ZEROS.
+        01 FS4                PIC 99 VALUE ZEROS.
+        01 ENR-CNTR           PIC X.
+            88 ENR-INEX       VALUE 'I'.
+            88 ENR-EX         VALUE 'E'.
+        01                    PIC X.
+            88 FIN-FILE       VALUE SPACES.
+        01                    PIC X.
+            88 CNTR-OK        VALUE 'O'.
+            88 CNTR-ERR       VALUE 'E'.
+        01 CNT-MVT            PIC 99 VALUE ZEROS.
+        01 CNT-CRT            PIC 99 VALUE ZEROS.
+        01 CNT-SPR            PIC 99 VALUE ZEROS.
+        01 CNT-MDF            PIC 99 VALUE ZEROS.
+        01 CNT-CREES          PIC 99 VALUE ZEROS.
+        01 CNT-ERR-ALL        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MVT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-CRT        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-SPR        PIC 99 VALUE ZEROS.
+        01 CNT-ERR-MDF        PIC 99 VALUE ZEROS.
+        01 CNT-ASS-LU         PIC 99 VALUE ZEROS.
+        01 Z2-SP21.
+            05 CODE-ERR       PIC 99 VALUE ZEROS.
+            05 ENR-CODE       PIC X(6).
+            05 MSG-ERR        PIC X(132).
+        01 A05SP21            PIC X(8) VALUE 'A05SP21'.
+        01 WS-DATEJ           PIC X(8).
+        01 DATEJO             PIC X(29).
+        01 PAGEHEADER.
+            05 HEAD-DATE.
+                 10                PIC X(25) VALUE 'MISE A JOUR DU : '.
+                 10 V-DATE         PIC X(10).
+            05 HEAD-USER.
+                 10                PIC X(25) VALUE 'USER           : '.
+                 10 V-USER         PIC X(10) VALUE 'FORA05'.
+            05 HEAD-ETATANO.
+                 10                PIC X(10) VALUE SPACES.
+                 10                PIC X(20) VALUE 'ETAT DES ANOMALIES'.
+            05 HEAD-LINE           PIC X(35) VALUE SPACES.
+        PROCEDURE DIVISION.
+
+            PERFORM DEBUT
+            PERFORM LECTURE
+
+            PERFORM UNTIL FIN-FILE
+                PERFORM SEARCH-ENR
+                PERFORM CNTR-ERROR
+                IF CNTR-OK
+                    PERFORM MISEAJOUR
+                ELSE
+                    PERFORM ETAT-ANO
+                END-IF
+                PERFORM LECTURE
+            END-PERFORM
+
+            PERFORM STATS
+            PERFORM FIN
+            STOP RUN.
+
+        DEBUT.
+            OPEN INPUT FKSDS
+            IF FS NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ASSURE'
+                 STOP RUN
+            END-IF
+            OPEN INPUT FMVTSE
+            IF FS2 NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE MVT'
+                 STOP RUN
+            END-IF
+            OPEN I-O   FKSDSOUT
+            IF FS3 NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ASSURE OUTPUT'
+                 STOP RUN
+            END-IF
+            OPEN OUTPUT FETATAN
+            IF FS  NOT = ZEROS
+                 DISPLAY 'ERROR OPEN FILE ETAT-ANO'
+                 STOP RUN
+            END-IF
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING
+                   WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            MOVE DATEJO TO V-DATE
+            DISPLAY HEAD-DATE
+            DISPLAY HEAD-USER
+            DISPLAY HEAD-LINE
+            DISPLAY HEAD-ETATANO
+            DISPLAY HEAD-LINE
+
+            WRITE ENR-ETATAN FROM HEAD-DATE    AFTER ADVANCING 1 LINE
+            WRITE ENR-ETATAN FROM HEAD-USER    AFTER ADVANCING 1 LINE
+            WRITE ENR-ETATAN FROM HEAD-LINE    AFTER ADVANCING 1 LINE
+            WRITE ENR-ETATAN FROM HEAD-ETATANO AFTER ADVANCING 1 LINE
+            WRITE ENR-ETATAN FROM HEAD-LINE    AFTER ADVANCING 1 LINE
+            .
+
+        LECTURE.
+            READ FMVTSE INTO W-FMVTSE
+                 AT END  SET FIN-FILE TO TRUE
+                 NOT END ADD 1 TO CNT-MVT
+            END-READ
+            .
+
+        SEARCH-ENR.
+            MOVE SPACES TO ENR-CNTR
+            MOVE F-MAT  TO MAT-X3 OF ENR-ASS
+            READ FKSDS
+                  INVALID KEY SET ENR-INEX TO TRUE
+                  NOT INVALID KEY
+                      ADD 1 TO CNT-ASS-LU
+                      SET ENR-EX TO TRUE
+            END-READ
+            .
+
+        CNTR-ERROR.
+            SET CNTR-OK  TO TRUE
+            MOVE F-MAT TO ENR-CODE
+            PERFORM CNTR-MVT
+            PERFORM CNTR-CREATION
+            PERFORM CNTR-DELETE
+            PERFORM CNTR-MODIF
+            .
+
+        CNTR-MVT.
+            IF F-CODE NOT = 'C' AND 'M' AND 'S'
+                ADD  1  TO CNT-ERR-MVT
+                SET CNTR-ERR TO TRUE
+                MOVE 1  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-CREATION.
+            IF F-CODE = 'C' AND ENR-EX
+                ADD  1  TO CNT-ERR-CRT
+                SET CNTR-ERR TO TRUE
+                MOVE 2  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-DELETE.
+            IF F-CODE = 'S' AND ENR-INEX
+                ADD  1  TO CNT-ERR-SPR
+                SET CNTR-ERR TO TRUE
+                MOVE 4  TO CODE-ERR
+            END-IF
+            .
+
+        CNTR-MODIF.
+            IF F-CODE = 'M' AND ENR-INEX
+                ADD  1  TO CNT-ERR-MDF
+                SET CNTR-ERR TO TRUE
+                MOVE 3  TO CODE-ERR
+            END-IF
+            .
+
+        MISEAJOUR.
+            MOVE SPACES     TO ENR-ASS-OUT
+            MOVE F-MAT      TO MAT-X3     OF ENR-ASS-OUT
+            MOVE F-NOM-PRE  TO NOM-PRE-A3 OF ENR-ASS-OUT
+            MOVE F-RUE      TO RUE-A3     OF ENR-ASS-OUT
+            MOVE F-CP       TO CP-A3      OF ENR-ASS-OUT
+            MOVE F-VILLE    TO VILLE-A3   OF ENR-ASS-OUT
+            MOVE F-CODE     TO TYPE-V-A3  OF ENR-ASS-OUT
+            MOVE F-PRIME    TO PRIME-A3   OF ENR-ASS-OUT
+            MOVE F-BM       TO BM-A3      OF ENR-ASS-OUT
+            MOVE F-TAUX     TO TAUX-A3    OF ENR-ASS-OUT
+
+            EVALUATE F-CODE
+                WHEN 'C'
+                      WRITE   ENR-ASS-OUT
+                      ADD 1 TO CNT-CRT
+                WHEN 'S'
+                      DELETE  FKSDSOUT
+                      ADD 1 TO CNT-SPR
+                WHEN 'M'
+                      REWRITE ENR-ASS-OUT
+                      ADD 1 TO CNT-MDF
+            END-EVALUATE
+            .
+
+        ETAT-ANO.
+             CALL A05SP21 USING Z2-SP21
+             MOVE MSG-ERR TO ENR-ETATAN
+             WRITE ENR-ETATAN AFTER ADVANCING 1 LINE
+            .
+
+        STATS.
+            MOVE SPACES TO  ENR-CODE
+            DISPLAY SPACES
+            DISPLAY '            STATISTIQUES'
+            DISPLAY SPACES
+            COMPUTE CNT-CREES = CNT-ASS-LU + CNT-CRT - CNT-SPR
+            DISPLAY P-ERR(5)  CNT-ASS-LU
+            DISPLAY P-ERR(6)  CNT-MVT
+            DISPLAY P-ERR(18) CNT-CRT
+            DISPLAY P-ERR(8)  CNT-CREES
+            DISPLAY P-ERR(9)  CNT-MDF
+            DISPLAY P-ERR(10) CNT-SPR
+            DISPLAY SPACES
+            COMPUTE CNT-ERR-ALL = CNT-ERR-MVT + CNT-ERR-CRT +
+                                  CNT-ERR-MDF + CNT-ERR-SPR
+            DISPLAY P-ERR(7)   CNT-ERR-ALL
+            DISPLAY P-ERR(11)  CNT-ERR-MVT
+            DISPLAY P-ERR(12)  CNT-ERR-CRT
+            DISPLAY P-ERR(13)  CNT-ERR-MDF
+            DISPLAY P-ERR(14)  CNT-ERR-SPR
+            .
+        FIN.
+            CLOSE FKSDS
+            CLOSE FKSDSOUT
+            CLOSE FMVTSE
+            CLOSE FETATAN
+            .
+ MEMBER NAME  A05P23
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05P23.
+        AUTHOR. NIKOLAI.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FINPUT   ASSIGN TO DDINPUT1
+                   FILE STATUS IS FS.
+            SELECT FINPUT2  ASSIGN TO DDINPUT2
+                   FILE STATUS IS FS2.
+        DATA DIVISION.
+        FILE SECTION.
+        FD FINPUT.
+        01 ENR1.
+            05 F1 PIC X.
+            05 F2 PIC X(79).
+        FD FINPUT2.
+        01 ENR2 PIC X(80).
+        WORKING-STORAGE SECTION.
+        01 FS                   PIC 99 VALUE ZEROS.
+        01 FS2                  PIC 99 VALUE ZEROS.
+        01                      PIC 9.
+             88 FILE-READ-OK    VALUE 1.
+             88 FIN-FILE        VALUE 0.
+
+        PROCEDURE DIVISION.
+
+             PERFORM DEBUT
+             PERFORM LECTURE
+             PERFORM UNTIL FIN-FILE
+                PERFORM LECTURE
+             END-PERFORM
+             PERFORM FIN
+             STOP RUN.
+
+        DEBUT.
+             OPEN INPUT FINPUT
+             SET FILE-READ-OK TO TRUE
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             OPEN OUTPUT FINPUT2
+             SET FILE-READ-OK TO TRUE
+             IF FS NOT = ZEROES
+                   DISPLAY 'ERROR OPEN FILE'
+                   STOP RUN
+             END-IF
+             .
+
+        LECTURE.
+             READ FINPUT
+                  AT END SET FIN-FILE TO TRUE
+             END-READ
+             DISPLAY ENR1
+             IF FS NOT = ZEROS AND FS NOT = 10
+                 DISPLAY 'ERROR READING'
+                 STOP RUN
+             END-IF
+             MOVE SPACE TO F1
+             WRITE ENR2    FROM ENR1
+             .
+        FIN.
+             DISPLAY SPACES
+             DISPLAY 'FIN'
+             CLOSE FINPUT FINPUT2.
+ MEMBER NAME  A05EPGMT
+       *======================================================*
+       *   MENU DE GESTION DES PRODUITS                       *
+       *======================================================*
+
+       *======================================================*
+       *   I D E N T I F I C A T I O N     D I V I S I O N    *
+       *======================================================*
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. A05EPGMT.
+
+       *======================================================*
+       *   E N V I R O N M E N T       D I V I S I O N        *
+       *======================================================*
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-390.
+        OBJECT-COMPUTER. IBM-390.
+
+       *======================================================*
+       *           D A T A         D I V I S I O N            *
+       *======================================================*
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+
+       * ZONE POUR DATE DU JOUR
+        01  WS-DATEJ               PIC X(8) VALUE SPACES.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION DETAILLEE DE LA ZONE DE COMMUNICATION  *
+       *------------------------------------------------------*
+        01  WS-COMMAREA.
+            05 PROG-PRECEDENT      PIC X(8).
+            05 PROG-COURANT        PIC X(8).
+            05 PROG-SUIVANT        PIC X(8).
+            05                     PIC X(26).
+
+        01 C-R                     PIC S9(8) COMP.
+
+        01 MON-PROG                PIC X(8) VALUE 'A05EPGMT'.
+        01 MA-MAP                  PIC X(8) VALUE 'A05EMAP '.
+        01 MA-TRX                  PIC X(4) VALUE 'A05E'.
+       *------------------------------------------------------*
+       *   DESCRIPTION   DE   LA   MAP                        *
+       *------------------------------------------------------*
+        COPY A05EMAP.
+
+       *------------------------------------------------------*
+       *   ZONE DE MESSAGE TAMPON POUR LE SEND FROM           *
+       *------------------------------------------------------*
+        01  MESSAGE-TXT            PIC X(79).
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  TOUCHES   FONCTIONS             *
+       *------------------------------------------------------*
+        COPY DFHAID.
+
+       *------------------------------------------------------*
+       *   DESCRIPTION   DES  ATTRIBUTS                       *
+       *------------------------------------------------------*
+        COPY DFHBMSCA.
+
+       *======================================================*
+       *          L I N K A G E     S E C T I O N             *
+       *======================================================*
+        LINKAGE SECTION.
+        01  DFHCOMMAREA.
+            05 LK-COMMAREA            PIC X(50).
+
+       *======================================================*
+       *     P R O C E D U R E     D I V I S I O N            *
+       *======================================================*
+
+        PROCEDURE DIVISION.
+        00000-INIT-PROGRAMME.
+       *---------------------*
+             PERFORM  10000-DEBUT-PROGRAMME
+             PERFORM  20000-TRAIT-PROGRAMME
+             GOBACK
+             .
+
+        10000-DEBUT-PROGRAMME.
+       *---------------------*
+       *   TEST DE PREMIERE ENTREE DANS LE PROGRAMME
+       *   SI NON PROGRAMME  MENU --->  ARRET  (ACCES INTERDIT)
+            IF EIBCALEN = 0
+               INITIALIZE      WS-COMMAREA
+            ELSE
+               MOVE LK-COMMAREA    TO  WS-COMMAREA
+            END-IF
+
+            MOVE  PROG-COURANT     TO  PROG-PRECEDENT
+            MOVE  MON-PROG         TO  PROG-COURANT
+            .
+
+        20000-TRAIT-PROGRAMME.
+       *---------------------*
+            IF PROG-PRECEDENT  NOT =  PROG-COURANT
+               PERFORM  21000-TRAIT-CHARGEMENT
+               PERFORM  22000-TRAIT-ENVOI
+            ELSE
+               PERFORM  23000-TRAIT-RECEPTION
+            END-IF
+            .
+
+        21000-TRAIT-CHARGEMENT.
+       *----------------------*
+       *  CHARGEMENT DE LA MAP AVANT AFFICHAGE
+            MOVE LOW-VALUE TO A05EMAPO
+
+       *  SI TRAITEMENT PARTICULIER AVANT AFFICHAGE
+       *    PERFORM  21100-TRAIT-SPECIFIQUE
+            .
+
+       *21100-TRAIT-SPECIFIQUE.
+       *----------------------*
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    ..............................
+       *    .
+
+        22000-TRAIT-ENVOI.
+       *-----------------*
+       * AFFICHAGE DE LA DATE DU JOUR
+            MOVE FUNCTION CURRENT-DATE TO WS-DATEJ
+            STRING WS-DATEJ (7 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (5 : 2) DELIMITED BY SIZE
+                   '/'              DELIMITED BY SIZE
+                   WS-DATEJ (1 : 4) DELIMITED BY SIZE
+                   INTO DATEJO
+            END-STRING
+
+            EXEC CICS SEND MAP    ('A05EMAP')
+                           ERASE
+            END-EXEC
+
+            MOVE PROG-COURANT TO PROG-SUIVANT
+
+            EXEC CICS RETURN TRANSID  (MA-TRX)
+                             COMMAREA (WS-COMMAREA)
+                             LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23000-TRAIT-RECEPTION.
+       *---------------------*
+            EVALUATE EIBAID
+               WHEN DFHENTER
+                    PERFORM  23100-TRAIT-ENTER
+               WHEN DFHCLEAR
+                    PERFORM  23200-TRAIT-FIN
+               WHEN OTHER
+                    PERFORM  90000-ERR-TOUCHE
+            END-EVALUATE
+            .
+
+        23110-PROG-SUIVANT.
+       *------------------*
+       *    IF  ......................
+       *       MOVE '?????'   TO  PROG-SUIVANT
+       *    END-IF
+
+            EXEC CICS XCTL  PROGRAM  (PROG-SUIVANT)
+                            COMMAREA (WS-COMMAREA)
+                            LENGTH   (LENGTH OF WS-COMMAREA)
+            END-EXEC
+            .
+
+        23100-TRAIT-ENTER.
+       *------------------*
+       *    ..........................
+            EXEC CICS RECEIVE MAP  ('A05EMAP')
+                              RESP (C-R)
+            END-EXEC
+
+            EVALUATE C-R
+               WHEN DFHRESP(NORMAL)
+                    CONTINUE
+       *       WHEN DFHRESP(MAPFAIL)
+       *            .............
+               WHEN OTHER
+                    PERFORM 91000-ERREUR-CICS
+            END-EVALUATE
+
+       *    ............................
+       *    ...  ANALYSE DES CHAMPS  ...
+       *    ............................
+            EVALUATE CHOIXI
+               WHEN '2'
+                 MOVE 'A05EPGMT' TO PROG-SUIVANT
+                 PERFORM 23110-PROG-SUIVANT
+               WHEN '1'
+                 MOVE 'A05EPGMT' TO PROG-SUIVANT
+                 PERFORM 23110-PROG-SUIVANT
+               WHEN '3'
+               WHEN '4'
+                 MOVE 'CHOIX ACTUELLEMENT INDISPONIBLE' TO MSGO
+                 PERFORM  22000-TRAIT-ENVOI
+               WHEN OTHER
+                 MOVE 'CHOIX INVALIDE'                  TO MSGO
+                 PERFORM  22000-TRAIT-ENVOI
+            END-EVALUATE
+            .
+
+        23200-TRAIT-FIN.
+       *---------------*
+            MOVE 'FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        90000-ERR-TOUCHE.
+       *----------------*
+            MOVE 'TOUCHE DE FONCTION INVALIDE' TO MSGO
+            PERFORM  22000-TRAIT-ENVOI
+            .
+
+        91000-ERREUR-CICS.
+       *-------------------*
+            MOVE 'ERREUR CICS !!!  FIN DE LA TRANSACTION' TO MESSAGE-TXT
+            PERFORM   99000-FIN-CICS
+            .
+
+        99000-FIN-CICS.
+       *--------------*
+            EXEC CICS SEND FROM   (MESSAGE-TXT)
+                           LENGTH (LENGTH OF MESSAGE-TXT)
+                           ERASE
+            END-EXEC
+
+            EXEC CICS RETURN END-EXEC
+            .
+ MEMBER NAME  A05EMAP
+ A05EMAP DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,EXTATT=YES,         X
+                CTRL=(FREEKB,FRSET),STORAGE=AUTO,TIOAPFX=YES
+ A05EMAP DFHMDI COLUMN=1,LINE=1,SIZE=(24,80)
+         DFHMDF POS=(1,1),ATTRB=ASKIP,LENGTH=04,INITIAL='A05E'
+         DFHMDF POS=(1,65),ATTRB=ASKIP,LENGTH=07,INITIAL='A05EMAP'
+         DFHMDF POS=(2,60),ATTRB=ASKIP,LENGTH=06,INITIAL='DATE :'
+ DATEJ   DFHMDF POS=(2,67),ATTRB=(ASKIP,FSET,NORM),LENGTH=10
+         DFHMDF POS=(04,24),LENGTH=26,ATTRB=ASKIP,                      X
+                INITIAL='***     MENU D''ACCES   ***'
+         DFHMDF POS=(09,28),LENGTH=13,ATTRB=ASKIP,                      X
+                INITIAL='USERID     : '
+ USERID  DFHMDF POS=(09,42),LENGTH=10,ATTRB=(UNPROT,IC,FSET),           X
+                JUSTIFY=(LEFT,BLANK)
+         DFHMDF POS=(09,54),ATTRB=ASKIP,LENGTH=1
+         DFHMDF POS=(11,28),LENGTH=13,ATTRB=ASKIP,                      X
+                INITIAL='PASSWORD   : '
+ PASSWD  DFHMDF POS=(11,42),LENGTH=10,ATTRB=(UNPROT,FSET),              X
+                JUSTIFY=(LEFT,BLANK)
+         DFHMDF POS=(11,54),ATTRB=ASKIP,LENGTH=1
+         DFHMDF POS=(15,28),LENGTH=13,ATTRB=ASKIP,                      X
+                INITIAL='VSAM/DB2   :'
+ CHOIX   DFHMDF POS=(15,42),LENGTH=01,ATTRB=(UNPROT,FSET),              X
+                JUSTIFY=(RIGHT,BLANK)
+         DFHMDF POS=(15,44),ATTRB=ASKIP,LENGTH=1
+         DFHMDF POS=(23,1),ATTRB=ASKIP,LENGTH=11,INITIAL='ENTER - VAL'
+ MSG     DFHMDF POS=(24,1),ATTRB=(ASKIP,BRT),LENGTH=79
+         DFHMSD TYPE=FINAL
+         END
+         END

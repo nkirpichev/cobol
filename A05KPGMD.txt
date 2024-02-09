@@ -1,0 +1,86 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05KPGMD.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC
+           EXEC SQL INCLUDE VENTES END-EXEC
+       77 SQLCODE-ED                 PIC +(8)9 VALUE ZEROES.
+       01 PRIX-ED                    PIC +(5)9.9(2).
+       01 SQL-STATUS                 PIC 9.
+           88 SQL-OK                       VALUE 1.
+           88 SQL-ERR                      VALUE 0.
+       PROCEDURE DIVISION.
+           PERFORM DEBUT
+           PERFORM READ-OLD
+           IF SQL-OK
+               MOVE PRIX TO PRIX-ED
+               DISPLAY 'OLD PRIX - ' PRIX-ED
+               PERFORM READ-NEW
+               IF SQL-OK
+                    PERFORM AFFICHAGE
+               END-IF
+           END-IF
+           STOP RUN.
+
+       DEBUT.
+           INITIALIZE VENTES
+           MOVE 'T702'     TO CODEA
+           MOVE '463CQ'    TO SIREN
+           MOVE '20.12.1997' TO DATEVENTE
+           SET  SQL-OK TO TRUE
+           .
+
+       READ-OLD.
+           EXEC SQL
+             SELECT *
+             INTO :VENTES
+             FROM VENTES
+             WHERE SIREN     = :SIREN AND
+                   CODEA     = :CODEA AND
+                   DATEVENTE = :DATEVENTE
+           END-EXEC
+           PERFORM EVALUATE-SQLCODE
+           .
+
+       INSERT-SQL.
+           EXEC SQL
+             INSERT
+             INTO VENTES
+             VALUES( :CODEA, CURRENT_DATE, :SIREN, 200, :PRIX*1.1)
+           END-EXEC
+           .
+
+       READ-NEW.
+           EXEC SQL
+             SELECT *
+             INTO :VENTES
+             FROM VENTES
+             WHERE SIREN     = :SIREN AND
+                   CODEA     = :CODEA AND
+                   DATEVENTE = CURRENT_DATE
+           END-EXEC
+           PERFORM EVALUATE-SQLCODE
+           .
+
+       AFFICHAGE.
+           MOVE PRIX TO PRIX-ED
+           DISPLAY 'NEW PRIX - ' PRIX-ED
+           DISPLAY 'SIREN    - ' SIREN
+           DISPLAY 'CODEA    - ' CODEA
+           DISPLAY 'QTE      - ' QTE
+           DISPLAY 'DATE     - ' DATEVENTE
+           .
+
+       EVALUATE-SQLCODE.
+           EVALUATE SQLCODE
+                 WHEN ZEROES
+                  CONTINUE
+                 WHEN +100
+                  SET SQL-ERR TO TRUE
+                  DISPLAY 'CODE INCONNU'
+                 WHEN OTHER
+                  MOVE SQLCODE TO SQLCODE-ED
+                  DISPLAY 'ERREUR SELECT , SQLCODE : ' SQLCODE-ED
+                  STOP RUN
+           END-EVALUATE.

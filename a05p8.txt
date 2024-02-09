@@ -1,0 +1,101 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P8.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FINPUT ASSIGN TO DDINPUT
+                  FILE STATUS IS FS.
+           SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                  FILE STATUS IS FS1.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FINPUT.
+       01 ENT-INPUT.
+            05 E-CODE-PRDT     PIC X(4).
+            05                 PIC X.
+            05 E-TYPE-MVT      PIC X.
+            05                 PIC X.
+            05 E-CTE-MVT       PIC 9(2).
+            05                 PIC X(71).
+       FD FOUTPUT.
+       01 ENT-OUTPUT           PIC X(80).
+       WORKING-STORAGE SECTION.
+       01 FS                   PIC 99 VALUE ZEROS.
+       01 FS1                  PIC 99.
+       01 ZONEERROR            PIC 9.
+            88 OK              VALUE 0.
+            88 ISERROR         VALUE 1.
+       01 CNT                  PIC 99 VALUE ZEROS.
+       01 CNT-ERR              PIC 99 VALUE ZEROS.
+       01 CNT-ENR              PIC 99 VALUE ZEROS.
+       PROCEDURE DIVISION.
+      *****************MAIN*****************
+            PERFORM DEBUT
+            PERFORM LECTURE
+            PERFORM UNTIL FS = 10
+                PERFORM CHECK-ERR-PRDT
+                PERFORM CHECK-ERR-TYPE
+                PERFORM CHECK-ERR-CNT
+                PERFORM TRAITENEMENT
+                PERFORM LECTURE
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN.
+      *****************PROCEDURES**********
+       DEBUT.
+            OPEN INPUT FINPUT
+            IF FS NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            OPEN OUTPUT FOUTPUT
+            IF FS1 NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF.
+      ******************CHECKING ERRORS*****
+       CHECK-ERR-PRDT.
+            IF E-CODE-PRDT = SPACES
+                  DISPLAY 'LINE - ' CNT ' CODE ERROR - ' E-CODE-PRDT
+                  SET ISERROR TO TRUE
+            END-IF.
+       CHECK-ERR-TYPE.
+            IF E-TYPE-MVT NOT = 'E' AND E-TYPE-MVT NOT = 'S'
+                  DISPLAY 'LINE - ' CNT ' TYPE ERROR - ' E-TYPE-MVT
+                  SET ISERROR TO TRUE
+            END-IF.
+       CHECK-ERR-CNT.
+            IF E-CTE-MVT NOT NUMERIC
+                  DISPLAY 'LINE - ' CNT
+                          ' CTE NOT NUMERIC - ' E-CTE-MVT
+                  SET ISERROR TO TRUE
+            ELSE
+                  IF E-CTE-MVT < 1
+                       DISPLAY 'LINE - ' CNT ' CTE = 0 - ' E-CTE-MVT
+                       SET ISERROR TO TRUE
+                  END-IF
+            END-IF.
+      ************ READ / WRITE *****
+       TRAITENEMENT.
+            IF OK
+                  WRITE ENT-OUTPUT FROM ENT-INPUT
+                  ADD 1 TO CNT-ENR
+            ELSE
+                  ADD 1 TO CNT-ERR
+            END-IF.
+       LECTURE.
+            READ FINPUT NOT AT END
+                 ADD 1 TO CNT
+            SET OK TO TRUE
+            IF FS NOT = ZEROS AND FS NOT = 10
+                DISPLAY 'ERROR READING'
+                STOP RUN
+            END-IF.
+       FIN.
+            DISPLAY SPACES
+            DISPLAY 'TOTAL       - ' CNT
+            DISPLAY 'TOTAL ERROR - ' CNT-ERR
+            DISPLAY 'TOTAL ENREG - ' CNT-ENR
+            CLOSE FINPUT
+            CLOSE FOUTPUT.

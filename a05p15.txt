@@ -1,0 +1,52 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P15.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FKSDS ASSIGN TO DDINPUT
+           ORGANIZATION IS INDEXED
+           RECORD KEY IS E-CODE-PRDT
+           ACCESS MODE IS RANDOM
+           FILE STATUS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FKSDS.
+       01 ENR.
+           05 E-CODE-PRDT    PIC X(4).
+           05                PIC X.
+           05 E-TYPE-MVT     PIC X.
+           05                PIC X.
+           05 E-CTE-MVT      PIC 99.
+           05                PIC X.
+           05 E-PRIX         PIC 999V99.
+           05                PIC X(65).
+       WORKING-STORAGE SECTION.
+       01 FS                 PIC 99.
+       PROCEDURE DIVISION.
+           PERFORM DEBUT
+           ACCEPT E-CODE-PRDT
+           PERFORM UNTIL E-CODE-PRDT = 'FIN'
+                PERFORM LECTURE
+                ACCEPT E-CODE-PRDT
+           END-PERFORM
+      *    MOVE 'A106' TO E-CODE-PRDT
+      *     MOVE 'A006' TO E-CODE-PRDT
+      *     PERFORM LECTURE
+           PERFORM FIN
+           STOP RUN.
+       DEBUT.
+           OPEN INPUT FKSDS
+           IF FS NOT = ZEROS
+                DISPLAY 'ERROR OPEN'
+                STOP RUN
+           END-IF.
+       LECTURE.
+           READ FKSDS
+                 INVALID KEY DISPLAY 'KEY NOT IN FILE - ' E-CODE-PRDT
+                 NOT INVALID KEY
+                     DISPLAY  ENR
+           END-READ.
+       FIN.
+           CLOSE FKSDS
+           .

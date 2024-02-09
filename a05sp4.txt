@@ -1,0 +1,66 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP4.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FKSDS ASSIGN TO DDINPUT
+           ORGANIZATION IS INDEXED
+           RECORD KEY IS E-CODE-PRDT
+           ACCESS MODE IS RANDOM
+           FILE STATUS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FKSDS.
+       01 ENR.
+           05 E-CODE-PRDT    PIC X(4).
+           05                PIC X.
+           05 E-TYPE-MVT     PIC X.
+           05                PIC X.
+           05 E-CTE-MVT      PIC 99.
+           05                PIC X.
+           05 E-PRIX         PIC 999V99.
+           05                PIC X(65).
+       WORKING-STORAGE SECTION.
+       01 FS                 PIC 99.
+       LINKAGE SECTION.
+       01  Z4-SP4.
+           05 Z4-CODRET             PIC X.
+           05 Z4-ENR.
+                10 Z4-CODE-PRDT PIC X(4).
+                10 Z4-TYPE-MVT  PIC X.
+                10 Z4-QTE-MVT   PIC 99.
+                10 Z4-PRIX      PIC 999V99.
+       PROCEDURE DIVISION USING Z4-SP4.
+           PERFORM DEBUT
+           PERFORM ECRITURE
+           PERFORM FIN
+           GOBACK.
+       DEBUT.
+           OPEN I-O FKSDS
+           IF FS NOT = ZEROS
+                MOVE 9 TO Z4-CODRET
+                GOBACK
+           END-IF.
+       ECRITURE.
+           MOVE SPACES TO ENR
+           MOVE Z4-CODE-PRDT TO E-CODE-PRDT
+           MOVE Z4-TYPE-MVT  TO E-TYPE-MVT
+           MOVE Z4-QTE-MVT   TO E-CTE-MVT
+           MOVE Z4-PRIX      TO E-PRIX
+           REWRITE ENR
+                 INVALID KEY MOVE 1 TO Z4-CODRET
+                 NOT INVALID KEY
+                     MOVE 0 TO Z4-CODRET
+           END-REWRITE.
+       LECTURE.
+           MOVE Z4-CODE-PRDT TO E-CODE-PRDT
+           READ FKSDS
+                 INVALID KEY MOVE 1 TO Z4-CODRET
+                 NOT INVALID KEY
+                     MOVE ENR TO Z4-ENR
+                     MOVE 0 TO Z4-CODRET
+           END-READ.
+       FIN.
+           CLOSE FKSDS
+           .

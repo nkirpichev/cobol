@@ -1,0 +1,28 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05SP21.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY WMESSAGE.
+       01  REDEFINES TABLE-MESSAGE.
+           05 P-ERR PIC X(60) OCCURS 18.
+       01  MSG-ERR-ED       PIC X(75).
+       LINKAGE SECTION.
+       01 Z2-SP21.
+           05 CODE-ERR      PIC 99.
+           05 ENR-CODE      PIC X(6).
+           05 MSG-ERR       PIC X(132).
+       PROCEDURE DIVISION USING Z2-SP21.
+           MOVE SPACES TO MSG-ERR
+           IF ENR-CODE = SPACES
+                 DISPLAY P-ERR(CODE-ERR)
+           ELSE
+      *          MOVE P-ERR(CODE-ERR) TO MSG-ERR
+                 STRING  ENR-CODE DELIMITED BY SIZE
+                         ' ERREUR :    ' DELIMITED BY SIZE
+                         P-ERR(CODE-ERR) DELIMITED BY SIZE
+                 INTO    MSG-ERR
+                 MOVE MSG-ERR TO MSG-ERR-ED
+                 DISPLAY MSG-ERR-ED
+           END-IF
+           GOBACK.

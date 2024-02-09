@@ -1,0 +1,223 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05MPGMD.
+       AUTHOR. NIKOLAI.
+       DATE-WRITTEN. 17/12/2023.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * SQLCA
+           EXEC SQL INCLUDE SQLCA END-EXEC
+
+      * COPY DE LA ZONE DE COMMUNICATION AVEC A00SP7
+           COPY ZSP7.
+
+      * DIVERS
+       01  WS-CAS                      PIC 99       VALUE ZEROES.
+       01  WS-RESULTAT-ATTENDU         PIC X(50)    VALUE SPACES.
+
+       PROCEDURE DIVISION.
+      * CREATION BIEN EFFECTUEE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'CREATION BIEN EFFECTUEE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+           EXEC SQL ROLLBACK END-EXEC
+
+      * CREATION BIEN EFFECTUEE
+           INITIALIZE ZSP7
+           MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+           MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+           MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'C'                       TO ZSP7-FONCTION
+           MOVE 20                        TO ZSP7-DROITS
+           MOVE 'CREATION BIEN EFFECTUEE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+           EXEC SQL ROLLBACK END-EXEC
+
+      * ALBUM INEXISTANT
+           INITIALIZE ZSP7
+           MOVE 'AAAA'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'ALBUM INEXISTANT'        TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * ALBUM INEXISTANT
+           INITIALIZE ZSP7
+           MOVE 'AAAAAAAAAAAAAA'          TO ZSP7-TITREA
+           MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+           MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'C'                       TO ZSP7-FONCTION
+           MOVE 25                        TO ZSP7-DROITS
+           MOVE 'ALBUM INEXISTANT'        TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * CODE ALBUM ET TITRE RENSEIGNES
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'CODE ALBUM ET TITRE RENSEIGNES' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * MAISON DE DISTRIBUTION INEXISTANTE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE 'AAAAA'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'MAISON DIST INEXISTANTE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * MAISON DE DISTRIBUTION INEXISTANTE
+           INITIALIZE ZSP7
+           MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+           MOVE 'AAAAAAAAAAA'             TO ZSP7-RAISON-SOCIALE
+           MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'C'                       TO ZSP7-FONCTION
+           MOVE 25                        TO ZSP7-DROITS
+           MOVE 'MAISON DIST INEXISTANTE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * CODE MAISON ET RAISON SOCIALE RENSEIGNES
+           INITIALIZE ZSP7
+           MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+           MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'C'                       TO ZSP7-FONCTION
+           MOVE 25                        TO ZSP7-DROITS
+           MOVE 'CODE MAISON ET RAISON RENS' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * PERSONNE INEXISTANTE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'AAAA'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * PERSONNE INEXISTANTE
+           INITIALIZE ZSP7
+           MOVE 'COMPILATION 90'          TO ZSP7-TITREA
+           MOVE 'MUSIDISQUES'             TO ZSP7-RAISON-SOCIALE
+           MOVE 'AAAAAAAAAAA'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'C'                       TO ZSP7-FONCTION
+           MOVE 25                        TO ZSP7-DROITS
+           MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * CODE PERSONNE ET IDENTITE RENSEIGNES
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE 'BRASSENS G.'             TO ZSP7-IDENTITE
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'PERSONNE INEXISTANTE'    TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * DATE DE SIGNATURE INVALIDE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE 'AAAAAAAA'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'DATE SIGNATURE INVALIDE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * DATE DE SIGNATURE INVALIDE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '99999999'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'DATE SIGNATURE INVALIDE' TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * FONCTION INVALIDE
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'A'                       TO ZSP7-FONCTION
+           MOVE 6                         TO ZSP7-DROITS
+           MOVE 'FONCTION INVALIDE'       TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * DROITS INVALIDES
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE ZEROES                    TO ZSP7-DROITS
+           MOVE 'DROITS INVALIDES'        TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+      * DROITS INVALIDES
+           INITIALIZE ZSP7
+           MOVE 'C109'                    TO ZSP7-CODEA
+           MOVE '950RJ'                   TO ZSP7-SIREN
+           MOVE 'P190'                    TO ZSP7-CODEP
+           MOVE '20231231'                TO ZSP7-DATESIGN
+           MOVE 'I'                       TO ZSP7-FONCTION
+           MOVE 7                         TO ZSP7-DROITS
+           MOVE 'DROITS INVALIDES'        TO WS-RESULTAT-ATTENDU
+           PERFORM APPEL-SSPROG
+
+           STOP RUN
+           .
+
+       APPEL-SSPROG.
+           DISPLAY SPACES
+           ADD 1 TO WS-CAS
+           DISPLAY ' CAS : ' WS-CAS
+           DISPLAY '   ALBUM   : ' ZSP7-CODEA ', ' ZSP7-TITREA
+           DISPLAY '   MAISON  : ' ZSP7-SIREN ', ' ZSP7-RAISON-SOCIALE
+           DISPLAY '   PERSONNE: ' ZSP7-CODEP ', ' ZSP7-IDENTITE
+           DISPLAY '   DROITS  : ' ZSP7-DROITS
+           DISPLAY '   DATESIGN: ' ZSP7-DATESIGN
+           DISPLAY '   FONCTION: ' ZSP7-FONCTION
+           DISPLAY '   RESULTAT ATTENDU : ' WS-RESULTAT-ATTENDU
+
+           CALL 'A05SP6' USING ZSP7
+
+           DISPLAY '   RESULTAT OBSERVE : ' ZSP7-CODRET ' ' ZSP7-LIBERR
+           .

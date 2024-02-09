@@ -1,0 +1,100 @@
+      * DIVISION FOR DESCRIPTION. OBLIGATOIRE
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P3.
+       AUTHOR. NIKOLAI.
+       DATE-WRITTEN. 21/11/2023.
+      ******************************************************************
+      * LECTURE DU FICHIER CLIENT                                     **
+      ******************************************************************
+      * PROGRAM EXECUTION ENVIRONMENT
+       ENVIRONMENT DIVISION.
+      * CONF
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+      * IO
+       INPUT-OUTPUT SECTION.
+      * FILE FROM JCL
+       FILE-CONTROL.
+           SELECT FCLIENT ASSIGN TO DDCLIENT
+      * CODE ERROR
+                  FILE STATUS IS FS.
+      * DESCRIPTION VARIABLES FILE AND OTHERS
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FCLIENT
+           RECORDING MODE IS F.
+      *FILE STRUCTURE
+       01  ENR-CLIENT.
+           05 ENR-NUMCLI      PIC 99.
+           05                 PIC X.
+           05 ENR-NOM         PIC X(15).
+           05 ENR-PRENOM      PIC X(15).
+           05 ENR-DATE-ENT    PIC 9(8).
+           05                 PIC X(39).
+       WORKING-STORAGE SECTION.
+       01  FS                 PIC 99      VALUE ZEROES.
+       01  NSEC-FULL.
+           05 NSEC-SEX        PIC 9.
+                 88 HOMME            VALUE 1.
+                 88 FEMME            VALUE 2.
+           05 NSEC-DATE.
+                 10 NSEC-AN   PIC 99.
+                 10 NSEC-MOIS PIC 99.
+           05 NSEC-LIEU.
+                 10 NSEC-DEP  PIC 99.
+                 10 NSEC-COMM PIC 9(3).
+           05 NSEC-NUM        PIC 9(3).
+       01  ENR-DATE-FORMAT    PIC 9999/99/99.
+       01  ENR-DATE-GRP.
+           05 ENR-YEAR        PIC 9(4).
+           05 ENR-MONTH       PIC 99.
+           05 ENR-DAY         PIC 99.
+       01  ISVIDE             PIC 9 VALUE 1.
+       77  CNT                PIC 9(3) VALUE 0.
+       PROCEDURE DIVISION.
+           PERFORM DEBUT
+           PERFORM TRAITEMENT UNTIL FS = 10
+           PERFORM FIN
+           STOP RUN.
+
+       DEBUT.
+           OPEN INPUT FCLIENT
+           IF FS NOT = ZEROES
+              DISPLAY 'ERROR OPEN FILE: ' FS
+              STOP RUN
+           END-IF.
+
+           DISPLAY 'TTTT'.
+      *READING FILE
+       TRAITEMENT.
+           READ FCLIENT
+           IF FS = ZEROES
+              MOVE 0 TO ISVIDE
+              ADD 1 TO CNT
+              MOVE ENR-DATE-ENT TO ENR-DATE-GRP
+              IF ENR-YEAR <= 2022
+                  DISPLAY 'OLD CLIENT - '
+              ELSE
+                  DISPLAY 'NEW CLIENT - '
+              END-IF
+              MOVE ENR-DATE-ENT TO ENR-DATE-FORMAT
+              DISPLAY '   NUMERO   - ' ENR-NUMCLI
+              DISPLAY '   NOM      - ' ENR-NOM
+              DISPLAY '   PRENOM   - ' ENR-PRENOM
+              DISPLAY '   DATE ENT - ' ENR-DATE-FORMAT
+              DISPLAY SPACES
+           ELSE
+              IF FS = 10
+                 IF ISVIDE = 1
+                    DISPLAY 'FILE IS VIDE'
+                 ELSE
+                    DISPLAY 'TOTAL RECORDS - ' CNT
+                 END-IF
+              ELSE
+                 DISPLAY 'ERROR READ FILE: ' FS
+                 STOP RUN
+              END-IF
+           END-IF.
+       FIN.
+           CLOSE FCLIENT.

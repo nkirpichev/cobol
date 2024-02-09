@@ -1,0 +1,76 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P12.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FINPUT1  ASSIGN TO DDINPUT1
+                  FILE STATUS IS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FINPUT1.
+       01 ENT-INPUT1.
+            05 E-TYPE-ENR      PIC 9.
+            05                 PIC X.
+            05 E-CODE-PRDT     PIC X(4).
+            05                 PIC X.
+            05 E-TYPE-MVT      PIC X.
+            05                 PIC X.
+            05 E-CTE-MVT       PIC 9(2).
+            05                 PIC X(69).
+       01 ENT-INPUT2.
+            05 E-TYPE-ENR2     PIC 9.
+            05                 PIC X.
+            05 E-CODE-PRDT2    PIC X(4).
+            05                 PIC X.
+            05 E-PRIX          PIC 999V99.
+            05                 PIC X(68).
+       WORKING-STORAGE SECTION.
+       01 FS                   PIC 99 VALUE ZEROS.
+       01 K                    PIC 99 VALUE ZEROS.
+       01                      PIC 9.
+            88 FILE-READ-OK    VALUE 1.
+            88 FIN-FILE        VALUE 0.
+       01 E-TYPE-MVT2      PIC X.
+       01 E-CTE-MVT2       PIC 9(2).
+       PROCEDURE DIVISION.
+      *****************MAIN*****************
+            PERFORM DEBUT
+            PERFORM LECTURE1
+            PERFORM UNTIL FIN-FILE
+               IF E-TYPE-ENR = 2
+                    DISPLAY E-CODE-PRDT2 ' ' E-TYPE-MVT2 ' ' E-CTE-MVT2
+                                                   ' ' E-PRIX
+               ELSE
+                   PERFORM MOVEENR1
+               END-IF
+               PERFORM LECTURE1
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN.
+      *****************PROCEDURES**********
+       MOVEENR1.
+            MOVE E-TYPE-MVT TO E-TYPE-MVT2
+            MOVE E-CTE-MVT  TO E-CTE-MVT2.
+       DEBUT.
+            OPEN INPUT FINPUT1
+            SET FILE-READ-OK TO TRUE
+            IF FS NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            .
+       LECTURE1.
+            IF NOT FIN-FILE
+                READ FINPUT1
+                     AT END SET FIN-FILE TO TRUE
+                END-READ
+                IF FS NOT = ZEROS AND FS NOT = 10
+                    DISPLAY 'ERROR READING'
+                    STOP RUN
+                END-IF
+            END-IF.
+       FIN.
+            DISPLAY SPACES
+            DISPLAY 'FIN'
+            CLOSE FINPUT1.

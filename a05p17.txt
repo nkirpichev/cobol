@@ -1,0 +1,25 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P17.
+       AUTHOR. NIKOLAI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  Z4-SP4.
+           05 Z4-CODRET             PIC X.
+           05 Z4-ENR.
+                10 Z4-CODE-PRDT PIC X(4).
+                10 Z4-TYPE-MVT  PIC X.
+                10 Z4-QTE-MVT   PIC 99.
+                10 Z4-PRIX      PIC 999V99.
+       PROCEDURE DIVISION.
+           ACCEPT Z4-ENR
+           PERFORM UNTIL Z4-ENR = 'FIN'
+           DISPLAY Z4-ENR
+                CALL 'A05SP4' USING Z4-SP4
+                EVALUATE Z4-CODRET
+                     WHEN 0 DISPLAY 'WRITE OK'
+                     WHEN 1 DISPLAY 'KEY DOUBLE - ' Z4-CODE-PRDT
+                     WHEN OTHER DISPLAY 'ERROR' Z4-CODRET
+                END-EVALUATE
+                ACCEPT Z4-ENR
+           END-PERFORM
+           STOP RUN.

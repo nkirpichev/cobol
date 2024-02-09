@@ -1,0 +1,55 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P1.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 XX PIC XXX.
+       01 YY PIC XX.
+       01 EEE.
+              05 EE    PIC 999.
+              05 EE1   PIC 99.
+       01 EEEE REDEFINES EEE PIC 999V99.
+       01 EEE1 PIC X(6).
+
+       01 EEEE1 REDEFINES EEE1 PIC 999.99.
+       01 PRIX-W.
+             05 PRIX-ENT            PIC 999.
+             05 PRIX-DEC            PIC 99.
+       01 PRIX-NUM REDEFINES PRIX-W   PIC 9(3)V99.
+       01 PRIX-ED   PIC 9(3)V99.
+
+       01  ENR1.
+             05 ENR1-CODE-PRDT      PIC X(4).
+             05                     PIC X.
+             05 ENR1-TYPE-MVT       PIC X.
+             05                     PIC X.
+             05 ENR1-QTE-MVT        PIC 99.
+             05                     PIC X.
+             05 ENR1-PRIX           PIC 9(3)V99.
+             05                     PIC X(65).
+       PROCEDURE DIVISION.
+           MOVE '113' TO XX.
+           MOVE '22' TO YY.
+           MOVE XX TO EE.
+           MOVE YY TO EE1.
+      *    MOVE EEE TO EEE1
+
+               DISPLAY EEEE.
+               DISPLAY EEE.
+
+           STRING XX DELIMITED BY SPACES
+                  '.' DELIMITED BY SIZE
+                  YY DELIMITED BY SPACES
+                  INTO EEE1
+      *    MOVE EEE1 TO PRIX-ED
+      *    DISPLAY PRIX-ED
+           MOVE EEEE1 TO PRIX-ED
+           MOVE EEEE1 TO ENR1-PRIX
+           DISPLAY PRIX-ED
+      *    COMPUTE PRIX-ED = FUNCTION NUMVAL(EEE1) + 1
+                  DISPLAY EEE1
+               DISPLAY EEEE1.
+      *                  MOVE XX TO PRIX-ENT
+      *                  MOVE YY TO PRIX-DEC
+      *                  MOVE PRIX-NUM TO ENR1-PRIX
+                          DISPLAY ENR1-PRIX
+           STOP RUN.

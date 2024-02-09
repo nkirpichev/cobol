@@ -1,0 +1,5 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P2.
+       PROCEDURE DIVISION.
+           DISPLAY 'EEE'.
+           STOP RUN.

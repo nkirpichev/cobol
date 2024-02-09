@@ -1,0 +1,163 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. A05P11.
+       AUTHOR. NIKOLAI.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FINPUT1  ASSIGN TO DDINPUT1
+                  FILE STATUS IS FS.
+           SELECT FINPUT2 ASSIGN TO DDINPUT2
+                  FILE STATUS IS FS1.
+           SELECT FOUTPUT ASSIGN TO DDOUTPUT
+                  FILE STATUS IS FS2.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FINPUT1.
+       01 ENT-INPUT1.
+            05 E-CODE-PRDT     PIC X(4).
+            05                 PIC X.
+            05 E-TYPE-MVT      PIC X.
+            05                 PIC X.
+            05 E-CTE-MVT       PIC 9(2).
+            05                 PIC X(71).
+       FD FINPUT2.
+       01 ENT-INPUT2.
+            05 E-CODE-PRDT2    PIC X(4).
+            05                 PIC X.
+            05 E-PRIX          PIC 999V99.
+            05                 PIC X(70).
+       FD FOUTPUT.
+       01   ENT-OUTPUT.
+            05 S-CODE-PRDT     PIC X(4).
+            05                 PIC X.
+            05 S-TYPE-MVT      PIC X.
+            05                 PIC X.
+            05 S-CTE-MVT       PIC 9(2).
+            05                 PIC X.
+            05 S-PRIX          PIC 999V99.
+            05                 PIC X(65).
+       WORKING-STORAGE SECTION.
+       01 FS                   PIC 99 VALUE ZEROS.
+       01 FS1                  PIC 99 VALUE ZEROS.
+       01 FS2                  PIC 99 VALUE ZEROS.
+       01 CNT                  PIC 99 VALUE ZEROS.
+       01 K                    PIC 99 VALUE ZEROS.
+       01 FIN-ALL-FILE         PIC 9  VALUE 0.
+       01 CODE-TMP1            PIC X(4) VALUE ZEROS.
+       01 CODE-TMP2            PIC X(4) VALUE ZEROS.
+       01                      PIC 9.
+            88 FILE-READ-OK    VALUE 1.
+            88 FIN-FILE        VALUE 0.
+       01                      PIC 9.
+            88 FILE-READ-OK2   VALUE 1.
+            88 FIN-FILE2       VALUE 0.
+       01 PRIX-VAL-S           PIC 999V99   VALUE ZEROS.
+       01 PRIX-VAL-S-F         PIC ZZ9.99   VALUE ZEROS.
+       01 PROD-STK-F           PIC ++9      VALUE ZEROS.
+       01 DIRECTION            PIC X.
+       01 PROD-PR              PIC X.
+       01 PROD-NEW-PRIX        PIC 999V99   VALUE ZEROS.
+       01 PROD-NEW-PRIX-F      PIC ZZ9.99   VALUE ZEROS.
+       PROCEDURE DIVISION.
+      *****************MAIN*****************
+            PERFORM DEBUT
+            PERFORM LECTURE1
+            PERFORM LECTURE2
+            PERFORM UNTIL FIN-ALL-FILE > 5
+               DISPLAY FIN-ALL-FILE ' - ' CODE-TMP1 ' = ' CODE-TMP2
+               IF FIN-FILE AND FIN-FILE2
+                   ADD 8 TO FIN-ALL-FILE
+               END-IF
+               PERFORM INITIALISE-OUTPUT
+               IF CODE-TMP1 = CODE-TMP2
+                   PERFORM MOVEALL
+                   PERFORM ECRITURE
+                   PERFORM LECTURE1
+                   PERFORM LECTURE2
+               ELSE
+                   IF CODE-TMP1 < CODE-TMP2 AND NOT FIN-FILE
+                       PERFORM MOVEQNT
+                       PERFORM ECRITURE
+                       PERFORM LECTURE1
+                   ELSE
+                       PERFORM MOVEPRIX
+                       PERFORM ECRITURE
+                       PERFORM LECTURE2
+                   END-IF
+               END-IF
+            END-PERFORM
+            PERFORM FIN
+            STOP RUN.
+      *****************PROCEDURES**********
+       DEBUT.
+            OPEN INPUT FINPUT1
+            IF FS NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            OPEN INPUT FINPUT2
+            IF FS1 NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            SET FILE-READ-OK TO TRUE
+            SET FILE-READ-OK2 TO TRUE
+            OPEN OUTPUT FOUTPUT
+            IF FS2 NOT = ZEROES
+                  DISPLAY 'ERROR OPEN FILE'
+                  STOP RUN
+            END-IF
+            .
+       INITIALISE-OUTPUT.
+            INITIALIZE   ENT-OUTPUT
+            MOVE 'E'  TO S-TYPE-MVT
+            .
+       MOVEALL.
+            MOVE E-CODE-PRDT  TO S-CODE-PRDT
+            MOVE E-TYPE-MVT   TO S-TYPE-MVT
+            MOVE E-CTE-MVT    TO S-CTE-MVT
+            MOVE E-PRIX       TO S-PRIX
+            .
+       MOVEPRIX.
+            MOVE E-CODE-PRDT2 TO S-CODE-PRDT
+            MOVE E-PRIX       TO S-PRIX
+            .
+       MOVEQNT.
+            MOVE E-CODE-PRDT  TO S-CODE-PRDT
+            MOVE E-TYPE-MVT   TO S-TYPE-MVT
+            MOVE E-CTE-MVT    TO S-CTE-MVT
+            .
+       LECTURE1.
+            IF NOT FIN-FILE
+                READ FINPUT1
+                     AT END SET FIN-FILE TO TRUE
+                END-READ
+                IF FS NOT = ZEROS AND FS NOT = 10
+                    DISPLAY 'ERROR READING'
+                    STOP RUN
+                END-IF
+                MOVE E-CODE-PRDT TO CODE-TMP1
+            END-IF.
+       LECTURE2.
+            IF NOT FIN-FILE2
+                READ FINPUT2
+                     AT END SET FIN-FILE2 TO TRUE
+                END-READ
+                IF FS1 NOT = ZEROS AND FS NOT = 10
+                    DISPLAY 'ERROR READING'
+                    STOP RUN
+                END-IF
+                MOVE E-CODE-PRDT2 TO CODE-TMP2
+            END-IF.
+       ECRITURE.
+            DISPLAY ENT-OUTPUT
+            IF FIN-ALL-FILE < 8
+                WRITE ENT-OUTPUT
+            END-IF
+            .
+       FIN.
+            DISPLAY SPACES
+            DISPLAY 'FIN'
+            CLOSE FINPUT1
+            CLOSE FINPUT2
+            CLOSE FOUTPUT.
